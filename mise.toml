@@ -1,0 +1,68 @@
+[settings]
+env_shell_expand = true
+
+[tools]
+talosctl = "1.12.4"
+kubectl = "1.35.0"
+k9s = "latest"
+yq = "latest"
+helm = "4.0.4"
+helmfile = "1.4.1"
+
+[env]
+## User overrides
+_.file = ".env"
+_.source = ".envrc"
+## Project global variables
+PROJECT_NAME = "{{ env.PROJECT_NAME | default(value=config_root | basename) }}"
+PROJECT_ROOT = "{{config_root}}"
+## Cluster configuration
+TALOS_CLUSTER_NAME = "{{ env.TALOS_CLUSTER_NAME | default(value=env.PROJECT_NAME) }}"
+TALOS_CONTEXT = "{{ env.TALOS_CONTEXT | default(value=env.TALOS_CLUSTER_NAME) }}"
+TALOSHOME = "{{ env.PROJECT_ROOT}}/.talos"
+TALOS_HOME = "{{ env.PROJECT_ROOT}}/.talos"
+TALOSCONFIG = "{{ env.TALOS_HOME}}/talosconfig"
+TALOS_STATE_DIR = "{{ env.TALOS_HOME}}/clusters"
+TALOS_CONTROL_PLANE_COUNT = "{{ env.TALOS_CONTROL_PLANE_COUNT | default(value=1) }}"
+TALOS_WORKER_COUNT = "{{ env.TALOS_WORKER_COUNT | default(value=2) }}"
+## Kubernetes client API config
+KUBECONFIG = "{{ env.PROJECT_ROOT}}/.kube/config"
+## Vagrant configuration
+VAGRANT_CWD = "{{ config_root }}"
+VAGRANT_DEFAULT_PROVIDER = "libvirt"
+VAGRANT_NO_PARALLEL = false
+#VAGRANT_EXPERIMENTAL = "none_communicator"
+## Helm configuration
+HELM_CACHE_HOME = "{{ env.PROJECT_ROOT}}/.helm/cache"
+HELM_CONFIG_HOME = "{{ env.PROJECT_ROOT}}/.helm/config"
+HELM_DATA_HOME = "{{ env.PROJECT_ROOT}}/.helm/data"
+
+[tasks.cls_up]
+description = "Create Talos cluster using Docker"
+run = "talosctl cluster create docker --name \"$TALOS_CLUSTER_NAME\" --state \"$TALOS_STATE_DIR\" --workers $TALOS_WORKER_COUNT"
+quiet = true
+
+[tasks.cls_destroy]
+description = "Destroy Talos cluster and remove context"
+run = [
+  "talosctl cluster destroy --name \"$TALOS_CLUSTER_NAME\"",
+  "yq -i 'del(.contexts[env(TALOS_CONTEXT)])' \"$TALOSCONFIG\" 2>/dev/null || true",
+]
+quiet = true
+
+[tasks.ctx_list]
+description = "List all Talos contexts and show current"
+run = "talosctl config contexts"
+quiet = true
+
+[tasks.ctx_set]
+description = "Set current Talos context"
+usage = "arg '<context>' help='Context name to switch to'"
+run = 'talosctl config context "${usage_context}"'
+quiet = true
+
+[tasks.ctx_remove]
+description = "Remove a Talos context from config"
+usage = "arg '<context>' help='Context name to remove'"
+run = 'CONTEXT="${usage_context}" yq -i "del(.contexts[env(CONTEXT)])" "$TALOSCONFIG"'
+quiet = true

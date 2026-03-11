@@ -66,3 +66,23 @@ description = "Remove a Talos context from config"
 usage = "arg '<context>' help='Context name to remove'"
 run = 'CONTEXT="${usage_context}" yq -i "del(.contexts[env(CONTEXT)])" "$TALOSCONFIG"'
 quiet = true
+
+[tasks.preflight]
+description = "Run preflight checks before deployment"
+run = "./scripts/preflight.sh"
+
+[tasks.lint]
+description = "Lint all markdown files"
+run = "npx markdownlint-cli2 '**/*.md'"
+
+[tasks.lint-fix]
+description = "Lint and auto-fix markdown files"
+run = "npx markdownlint-cli2 '**/*.md' --fix"
+
+[tasks.sync-crds]
+description = "Sync CRDs release via Helmfile"
+run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync"
+
+[tasks.lint-helmfile]
+description = "Lint Helmfile configuration"
+run = "helmfile -f helmfile.yaml lint"

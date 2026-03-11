@@ -42,6 +42,16 @@ Deploy kube-prometheus-stack via Helmfile to provide Prometheus, Grafana, Alertm
 - **Organization parameter:** Environment variable — inject ORGANIZATION env var at deploy time, reference in resource names/labels
 - **Rationale:** Split structure improves maintainability; env var approach makes project reusable across teams/organizations
 
+### Deployment Process
+- **CRD deployment:** Separately via dedicated release before kube-prometheus-stack — safest approach for production-like environments
+- **Preflight checks:** Comprehensive — verify cluster health, node resources, existing CRDs, namespace availability before deployment
+- **Rollback strategy:** Partial — delete release but leave CRDs/namespaces for faster retry
+- **Deployment order enforcement:** Helmfile `needs` declarations — explicit dependencies between releases
+- **Retry policy:** Automatic with exponential backoff — use Helm/Helmfile built-in retry mechanisms
+- **Timeout:** 10 minutes — standard Helm release timeout
+- **Helmfile hooks:** Both pre-sync (prerequisites) and post-sync (verification) — comprehensive validation
+- **Rationale:** Production-ready deployment with safety checks, clear rollback path, and automated retries
+
 ### Claude's Discretion
 - Exact Helmfile hook implementation (kubectl wait commands vs status checks)
 - Specific NodePort port numbers (keep defaults 30000-32767 range)

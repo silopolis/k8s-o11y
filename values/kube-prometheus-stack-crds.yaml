@@ -1,0 +1,27 @@
+# kube-prometheus-stack CRDs values
+# Phase 1 Plan 01: CRD deployment
+#
+# The prometheus-operator-crds chart installs the Custom Resource Definitions
+# that the main kube-prometheus-stack chart depends on. Installing these
+# separately prevents race conditions during initial deployment.
+#
+# Reference: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-operator-crds
+
+---
+
+# CRD deployment configuration
+# Minimal values - the CRD chart typically requires no customization
+# as it installs standard Prometheus Operator CRDs
+
+# Full CRD set includes:
+# - alertmanagers.monitoring.coreos.com
+# - alertmanagerconfigs.monitoring.coreos.com
+# - prometheuses.monitoring.coreos.com
+# - prometheusrules.monitoring.coreos.com
+# - servicemonitors.monitoring.coreos.com
+# - podmonitors.monitoring.coreos.com
+# - probes.monitoring.coreos.com
+# - scrapeconfigs.monitoring.coreos.com
+# - thanosrulers.monitoring.coreos.com
+
+# No additional configuration needed for basic CRD installation

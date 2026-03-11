@@ -1,0 +1,78 @@
+# Helmfile for kube-prometheus-stack deployment
+# Phase 1: Core Observability Stack
+# Reference: .planning/phases/01-core-observability-stack/01-01-PLAN.md
+
+---
+
+# Helm repositories
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+# Helm defaults
+helmDefaults:
+  timeout: 600
+  wait: true
+  atomic: false
+  cleanupOnFail: true
+
+# Environments
+environments:
+  default:
+    values:
+      - organization: {{ requiredEnv "ORGANIZATION" | default "dev-org" }}
+
+# Releases
+releases:
+  # Wave 1: Install CRDs first
+  # CRDs must exist before the main kube-prometheus-stack chart
+  - name: kube-prometheus-stack-crds
+    namespace: monitoring
+    createNamespace: true
+    chart: prometheus-community/prometheus-operator-crds
+    version: "~11.0.0"  # Latest stable 11.x, allows patch updates
+    values:
+      - values/kube-prometheus-stack-crds.yaml
+    wait: true
+    hooks:
+      - events: ["postsync"]
+        command: "kubectl"
+        args:
+          - "get"
+          - "crd"
+          - "-l"
+          - "app.kubernetes.io/part-of=prometheus-operator"
+      - events: ["postsync"]
+        command: "echo"
+        args:
+          - "CRDs installed successfully. Ready for main stack deployment."
+
+  # Wave 2: Main kube-prometheus-stack (disabled for Plan 01)
+  # Will be enabled in 01-02-PLAN.md with dependency on CRDs
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    version: "~69.0.0"  # Latest stable 69.x
+    installed: false
+    needs:
+      - monitoring/kube-prometheus-stack-crds
+    values:
+      - values/kube-prometheus-stack.yaml
+    wait: true
+    hooks:
+      - events: ["presync"]
+        command: "kubectl"
+        args:
+          - "wait"
+          - "--for=condition=established"
+          - "crd"
+          - "servicemonitors.monitoring.coreos.com"
+          - "--timeout=60s"
+
+  # Wave 3: Verification (to be enabled in 01-03-PLAN.md)
+  # Post-deployment verification jobs
+
+---
+
+# Helmfile lint configuration
+# Run: helmfile lint

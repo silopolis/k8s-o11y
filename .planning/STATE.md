@@ -73,6 +73,7 @@
 ### Pending Todos
 
 - [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.
+- [Remove print prefix from functions in preflight script](.planning/todos/pending/2026-03-11-remove-print-prefix-from-functions-in-preflight-script.md) — tooling — Rename print_header, print_pass, print_fail, print_warn, print_info to shorter names.
 
 
 ## Phase Context Cache

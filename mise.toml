@@ -67,22 +67,37 @@ usage = "arg '<context>' help='Context name to remove'"
 run = 'CONTEXT="${usage_context}" yq -i "del(.contexts[env(CONTEXT)])" "$TALOSCONFIG"'
 quiet = true
 
-[tasks.preflight]
+[tasks.check_preflight]
 description = "Run preflight checks before deployment"
 run = "./scripts/preflight.sh"
 
-[tasks.lint]
+[tasks.lint_md]
 description = "Lint all markdown files"
 run = "npx markdownlint-cli2 '**/*.md'"
 
-[tasks.lint-fix]
+[tasks.lint_md_fix]
 description = "Lint and auto-fix markdown files"
 run = "npx markdownlint-cli2 '**/*.md' --fix"
 
-[tasks.sync-crds]
+[tasks.lint_helmfile]
+description = "Lint Helmfile configuration"
+run = "helmfile -f helmfile.yaml lint"
+
+[tasks.deploy_prom_crds]
 description = "Sync CRDs release via Helmfile"
 run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync"
 
-[tasks.lint-helmfile]
-description = "Lint Helmfile configuration"
-run = "helmfile -f helmfile.yaml lint"
+[tasks.deploy_phase1]
+description = "Run complete Phase 1 deployment workflow (preflight → lint → deploy CRDs)"
+run = [
+  "echo '=== Phase 1: Running preflight checks ==='",
+  "mise run check_preflight",
+  "echo ''",
+  "echo '=== Phase 1: Linting Helmfile ==='",
+  "mise run lint_helmfile",
+  "echo ''",
+  "echo '=== Phase 1: Deploying Prometheus CRDs ==='",
+  "mise run deploy_prom_crds",
+  "echo ''",
+  "echo '=== Phase 1 deployment complete ==='",
+]

@@ -1,0 +1,77 @@
+---
+# .markdownlint.yml
+# Configuration for docs-as-code (Quarto + MyST), semantic line breaks.
+config:
+  default: true
+
+  # --- Whitespace / newlines ---------------------------------------------------
+
+  MD009: # no-trailing-spaces
+    br_spaces: 2 # allow two trailing spaces for hard line breaks when needed
+    strict: false
+
+  MD010: # no-hard-tabs
+    code_blocks: true
+
+  MD012: # no-multiple-blanks
+    maximum: 2
+
+  MD047:
+    true # files end with a single newline
+
+
+    # Semantic line breaks => do NOT enforce line length
+  MD013: false # line-length
+
+  # --- Headings ----------------------------------------------------------------
+
+  MD022: # blanks-around-headings
+    lines_above: 2
+    lines_below: 1
+
+  MD023: true # headings must start at beginning of line
+  MD024: true # no duplicate headings
+  MD026: # no-trailing-punctuation in headings
+    punctuation: ".,;:!?"
+
+  MD029: # ordered-list-marker-style
+    style: "one_or_ordered"
+
+  # Quarto/MyST often use YAML front matter; allow `title:` to satisfy "first-line-h1".
+  MD041:
+    level: 1
+    front_matter_title: "^title\\s*[:=]" # treat front matter `title:` as the document title
+
+  # --- Lists -------------------------------------------------------------------
+
+  MD007:
+    indent: 2 # ul-indent
+  MD030: # list-marker-space, spaces after list markers
+    ul_single: 0
+    ol_single: 0
+    ul_multi: 1
+    ol_multi: 1
+
+  MD032: true # blanks-around-lists
+  MD034: true # no-bare-urls
+
+  # --- Code --------------------------------------------------------------------
+
+  MD040: true # fenced code blocks should have a language (good for docs)
+  MD046:
+    style: fenced # prefer fenced code blocks
+  MD048:
+    style: backtick # ``` fences (not ~~~)
+
+  # --- Emphasis / style --------------------------------------------------------
+
+  MD049:
+    style: asterisk # enforce *emphasis* (not _emphasis_)
+  MD050:
+    style: asterisk # enforce **strong** (not __strong__)
+
+  # --- HTML / MyST / Quarto pragmatism -----------------------------------------
+
+  MD033: false # allow inline HTML (sometimes used in MyST/Quarto)
+  MD036: true # no-emphasis-as-heading
+

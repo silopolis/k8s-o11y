@@ -87,8 +87,7 @@
 ### Pending Todos
 
 - [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.
-- [Extract colors and print functions to shared lib](.planning/todos/completed/2026-03-11-extract-colors-and-print-functions-to-shared-lib.md) — tooling — Create lib/output.sh with color definitions and print helpers for reuse across scripts.
-- [Extract check functions to shared lib](.planning/todos/pending/2026-03-11-extract-check-functions-to-shared-lib.md) — tooling — Convert inline preflight checks to reusable functions in lib/checks.sh.
+- [Extract check functions to shared lib](.planning/todos/completed/2026-03-11-extract-check-functions-to-shared-lib.md) — tooling — Convert inline preflight checks to reusable functions in lib/checks.sh.
 
 
 ## Phase Context Cache

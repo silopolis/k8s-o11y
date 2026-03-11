@@ -31,7 +31,7 @@
 | Requirements delivered | 0/35 | 35 |
 | Time elapsed | 0h | 2 days |
 | Critical blockers | 0 | 0 |
-
+| Phase 01-core-observability-stack P01 | 3m | 4 tasks | 3 files |
 
 ## Decisions Log
 
@@ -66,6 +66,13 @@
 | Issue | Impact | Workaround | ETA |
 |-------|--------|------------|-----|
 | None | — | — | — |
+
+
+## Accumulated Context
+
+### Pending Todos
+
+- [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.
 
 
 ## Phase Context Cache

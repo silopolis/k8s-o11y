@@ -14,13 +14,13 @@
 ## Current Position
 
 **Phase:** 1 (Core Observability Stack)  
-**Plan:** 3 plans created (01, 02, 03)  
-**Status:** Planned, ready for execution  
-**Progress Bar:** `[◆◆◆░░░░░░░░░░░░░░░] 15%`
+**Plan:** 1 of 3 completed (01-01 done, 01-02 next)  
+**Status:** In Progress - Plan 01 complete, ready for Plan 02  
+**Progress Bar:** `[◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆░░░] 18%`
 
-**Current Activity:** Phase 1 plans created — ready to execute
+**Current Activity:** Plan 01-01 complete - CRDs deployed successfully
 
-**Last Action:** Created 3 plans for Phase 1 (CRDs, main deployment, verification)
+**Last Action:** Deployed kube-prometheus-stack-crds via Helmfile (11 CRDs installed)
 
 
 ## Performance Metrics
@@ -42,6 +42,7 @@
 | 2025-03-11 | Combined Alerting + App | Phase 4 | Alerts need something to monitor; training-app provides test target for alerts |
 | 2025-03-11 | Dashboards last | Phase 5 | Needs all prior phases for data sources (cluster, Traefik, app metrics) |
 | 2025-03-11 | 3 plans for Phase 1 | Wave-based execution | Plan 01: CRDs (Wave 1), Plan 02: Main stack (Wave 2, depends 01), Plan 03: Verification (Wave 3, depends 02) |
+| 2026-03-11 | Simplified helmfile.yaml | Plan 01 execution | Removed environments templating to fix Helmfile v1 lint errors; will re-add with .gotmpl in Plan 02 |
 
 
 ## Active Todos
@@ -49,7 +50,9 @@
 **Immediate (Phase 1 Execution):**
 - [x] Gather Phase 1 context ✓
 - [x] Plan Phase 1 ✓
-- [ ] Execute Phase 1 with `/gsd-do-work 01-01`
+- [x] Execute Plan 01-01: CRDs deployment ✓
+- [ ] Execute Plan 01-02: Main kube-prometheus-stack deployment ← NEXT
+- [ ] Execute Plan 01-03: Verification and validation
 
 **Upcoming:**
 - [ ] Phase 2: Traefik Gateway API planning

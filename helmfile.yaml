@@ -16,12 +16,6 @@ helmDefaults:
   atomic: false
   cleanupOnFail: true
 
-# Environments
-environments:
-  default:
-    values:
-      - organization: {{ requiredEnv "ORGANIZATION" | default "dev-org" }}
-
 # Releases
 releases:
   # Wave 1: Install CRDs first

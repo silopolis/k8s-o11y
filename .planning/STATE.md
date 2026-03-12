@@ -96,6 +96,7 @@
 
 ### Pending Todos
 
+- [Use mise secrets management features for sensitive data](.planning/todos/pending/2026-03-12-use-mise-secrets-management-features-for-sensitive-data.md) — tooling — Integrate mise secrets management (1Password/Vault/sops) for API keys, credentials, and sensitive configuration.
 - [Refactor mise tasks to use directory tree in .mise/tasks/](.planning/todos/pending/2026-03-12-refactor-mise-tasks-to-use-directory-tree-in-mise-tasks.md) — tooling — Migrate inline mise.toml tasks to individual executable files in .mise/tasks/ directory structure.
 - [Add proper project main README.md file](.planning/todos/pending/2026-03-12-add-proper-project-main-readme-md-file.md) — docs — Create comprehensive README.md at repository root with project overview, quick start, and documentation links.
 - [Fix Talos control plane metrics exposition](.planning/todos/pending/2026-03-12-fix-talos-control-plane-metrics-exposition.md) — tooling — Review and fix issues with the completed Talos control plane metrics configuration.

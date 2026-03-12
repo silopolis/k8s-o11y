@@ -132,7 +132,12 @@ exit $LINT_EXIT
 # Phase 01-02: Template/Validation Tasks
 [tasks.template_stack]
 description = "Template kube-prometheus-stack without deploying"
-run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > /tmp/stack-template.yaml && echo 'Template written to /tmp/stack-template.yaml'"
+run = """
+TEMPLATE_FILE=$(mktemp -t stack-template-XXXXXX.yaml)
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > "$TEMPLATE_FILE"
+echo "Template written to: $TEMPLATE_FILE"
+echo "Lines: $(wc -l < $TEMPLATE_FILE)"
+"""
 
 [tasks.validate_stack]
 description = "Validate stack configuration (lint + template check)"

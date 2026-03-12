@@ -207,13 +207,6 @@ kubectl get pods -n monitoring
 echo ""
 echo "=== Checking services ==="
 kubectl get svc -n monitoring
-echo ""
-echo "=== Checking prometheus targets ==="
-OPERATOR_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=kube-prometheus-stack-prometheus-operator -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n monitoring "$OPERATOR_POD" -- \
-  wget -qO- http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/api/v1/targets 2>/dev/null | \
-  jq '.data.activeTargets[] | select(.health == \"up\") | .labels.job' 2>/dev/null || \
-  echo "Targets check requires jq or wget"
 """
 
 [tasks.verify_retention]
@@ -242,12 +235,23 @@ echo "Get admin password: kubectl get secret kube-prometheus-stack-grafana -n mo
 [tasks.verify_prometheus]
 description = "Verify Prometheus is collecting metrics"
 run = """
-echo "Checking Prometheus targets..."
+echo "Getting operator pod..."
 OPERATOR_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=kube-prometheus-stack-prometheus-operator -o jsonpath='{.items[0].metadata.name}')
+
+echo ""
+echo "=== Checking prometheus targets ==="
+kubectl exec -n monitoring "$OPERATOR_POD" -- \
+  wget -qO- http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/api/v1/targets 2>/dev/null | \
+  jq '.data.activeTargets[] | select(.health == \"up\") | .labels.job' 2>/dev/null || \
+  echo "Targets check requires jq or wget"
+
+echo ""
+echo "Active target count:"
 UP_TARGETS=$(kubectl exec -n monitoring "$OPERATOR_POD" -- \
   wget -qO- http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/api/v1/targets 2>/dev/null | \
   jq '[.data.activeTargets[] | select(.health == \"up\")] | length' 2>/dev/null || echo "0")
-echo "Active targets: $UP_TARGETS"
+echo "$UP_TARGETS"
+
 echo ""
 echo "Checking metrics query endpoint..."
 kubectl exec -n monitoring "$OPERATOR_POD" -- \

@@ -9,31 +9,12 @@ set -euo pipefail
 # Source shared libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+source "${PROJECT_ROOT}/lib/output.sh"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-header() {
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}$1${NC}"
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-}
-
-pass() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-fail() {
+# Custom fail function that exits
+fail_fatal() {
     echo -e "${RED}✗${NC} $1"
     exit 1
-}
-
-warn() {
-    echo -e "${YELLOW}⚠${NC} $1"
 }
 
 # Create backup directory
@@ -49,7 +30,7 @@ NODES=$(kubectl get nodes -l node-role.kubernetes.io/control-plane \
   -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || true)
 
 if [ -z "$NODES" ]; then
-    fail "No control plane nodes found. Is kubectl configured?"
+    fail_fatal "No control plane nodes found. Is kubectl configured?"
 fi
 
 NODE_COUNT=$(echo "$NODES" | wc -w)

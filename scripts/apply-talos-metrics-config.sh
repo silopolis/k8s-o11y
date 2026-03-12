@@ -9,38 +9,7 @@ set -euo pipefail
 # Source shared libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-source "${PROJECT_ROOT}/lib/checks.sh" 2>/dev/null || true
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Track warnings and failures
-WARNINGS=0
-ERRORS=0
-
-header() {
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}$1${NC}"
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-}
-
-pass() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-fail() {
-    echo -e "${RED}✗${NC} $1"
-    ((ERRORS++)) || true
-}
-
-warn() {
-    echo -e "${YELLOW}⚠${NC} $1"
-    ((WARNINGS++)) || true
-}
+source "${PROJECT_ROOT}/lib/output.sh"
 
 PATCH_FILE="${PROJECT_ROOT}/config/talos/control-plane-metrics-patch.yaml"
 SLEEP_DURATION=45
@@ -211,7 +180,7 @@ main() {
     # Summary
     header "Configuration Complete"
     
-    if [ $ERRORS -eq 0 ]; then
+    if [ $(get_errors) -eq 0 ]; then
         pass "All control plane nodes configured successfully!"
         echo ""
         echo "Next steps:"
@@ -219,7 +188,7 @@ main() {
         echo "  2. Check Prometheus targets page for controller-manager, scheduler, kube-proxy"
         echo "  3. Configure Prometheus scrape configs if needed"
     else
-        warn "Completed with $ERRORS error(s) and $WARNINGS warning(s)"
+        warn "Completed with $(get_errors) error(s) and $(get_warnings) warning(s)"
         echo ""
         echo "Review the output above for any issues."
     fi

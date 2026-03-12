@@ -8,7 +8,8 @@
 #   1: Critical issues found
 #
 
-set -e
+# Don't use set -e - we want to handle errors gracefully with pass/fail functions
+# set -e
 
 # Colors for output
 RED='\033[0;31m'
@@ -91,7 +92,7 @@ else
 fi
 
 # Check for CrashLoopBackOff specifically
-CRASHLOOPS=$(kubectl get pods -n monitoring --field-selector=status.phase!=Running -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || echo "")
+CRASHLOOPS=$(kubectl get pods -n monitoring --field-selector=status.phase!=Running -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
 if [[ -z "$CRASHLOOPS" ]]; then
     pass "No pods in CrashLoopBackOff or error states"
 else

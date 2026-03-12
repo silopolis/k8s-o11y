@@ -86,6 +86,7 @@
 | 1   | Add mise tasks for phase one operations                                           | 2026-03-11 | 0cc0cf1 | [1-add-mise-tasks-for-phase-one-operations-](./quick/1-add-mise-tasks-for-phase-one-operations-/) |
 | 2   | Add a mise task running check_preflight, lint_helmfile and deploy_prom_crds tasks | 2026-03-11 | 19723a8 | [2-add-a-mise-task-running-check-preflight-](./quick/2-add-a-mise-task-running-check-preflight-/) |
 | 3   | Create comprehensive markdown document covering Kubernetes monitoring stack       | 2026-03-12 | f1b2e2e | [3-cr-er-un-document-markdown-dans-docs-r-p-](./quick/3-cr-er-un-document-markdown-dans-docs-r-p-/) |
+| 4   | Fix verify-phase1.sh script - remove set -e and add error handling                 | 2026-03-12 | PENDING | [4-fix-verify-phase1-sh-script-remove-set-e](./quick/4-fix-verify-phase1-sh-script-remove-set-e/) |
 
 
 ## Accumulated Context

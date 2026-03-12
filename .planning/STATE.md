@@ -96,6 +96,7 @@
 
 ### Pending Todos
 
+- [Add markdownlint-cli to mise tools and pre-commit checking](.planning/todos/pending/2026-03-12-add-markdownlint-cli-to-mise-tools-and-pre-commit-checking.md) — tooling — Add markdownlint-cli2 as a mise tool and create lint task for markdown files.
 - [Add shellcheck checking to check scripts, tasks and pre-commit](.planning/todos/pending/2026-03-12-add-shellcheck-checking-to-check-scripts-tasks-and-pre-commit.md) — tooling — Integrate shellcheck static analysis for shell scripts in scripts/ directory and pre-commit hooks.
 - [Add pre-commit hooks support to the repository](.planning/todos/pending/2026-03-12-add-pre-commit-hooks-support-to-the-repository.md) — tooling — Set up pre-commit framework with markdownlint, YAML validation, and secret detection hooks.
 - [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.

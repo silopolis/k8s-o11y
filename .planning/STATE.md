@@ -94,6 +94,11 @@
 ## Accumulated Context
 
 
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 1: Clear pending TODOs, extend/deepen mise features usage, refactor improve and extend libs and scripts (URGENT)
+
+
 ### Pending Todos
 
 - [Use mise secrets management features for sensitive data](.planning/todos/pending/2026-03-12-use-mise-secrets-management-features-for-sensitive-data.md) — tooling — Integrate mise secrets management (1Password/Vault/sops) for API keys, credentials, and sensitive configuration.

@@ -34,6 +34,15 @@
 **Plans:** TBD
 
 
+### Phase 01.1: Clear pending TODOs, extend/deepen mise features usage, refactor improve and extend libs and scripts (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Depends on:** Phase 1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 01.1 to break down)
+
 ### Phase 2: Traefik Gateway API
 
 **Goal:** Traefik is operational as Gateway API controller with metrics exposed and scraped by Prometheus.

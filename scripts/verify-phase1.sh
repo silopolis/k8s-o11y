@@ -155,7 +155,7 @@ header "3. Metrics Collection Check"
 # Helper function to query Prometheus via kubectl exec
 query_prometheus() {
     local query="$1"
-    kubectl exec -it prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -c prometheus -- \
+    kubectl exec -i prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -c prometheus -- \
         wget -qO- "http://localhost:9090/api/v1/query?query=$query" 2>/dev/null || echo ""
 }
 
@@ -236,7 +236,7 @@ fi
 
 # Check alert status via Prometheus using kubectl exec
 if [[ -n "$PROM_POD" ]]; then
-    RULE_GROUPS=$(kubectl exec -it "$PROM_POD" -n monitoring -c prometheus -- \
+    RULE_GROUPS=$(kubectl exec -i "$PROM_POD" -n monitoring -c prometheus -- \
         wget -qO- "http://localhost:9090/api/v1/rules" 2>/dev/null | grep -o '"groups":\[' | wc -l || echo "0")
     if [[ "$RULE_GROUPS" -gt 0 ]]; then
         pass "Prometheus has rule groups configured"

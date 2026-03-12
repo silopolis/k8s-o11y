@@ -1,0 +1,82 @@
+# Grafana-specific configuration values
+# Phase 1: Core Observability Stack - Task 4
+# Reference: .planning/phases/01-core-observability-stack/01-02-PLAN.md
+#
+# Access method: NodePort 30030 for direct browser access without ingress
+
+---
+grafana:
+  enabled: true
+
+  # Service configuration: NodePort for direct access
+  # This allows accessing Grafana via http://<node-ip>:30030 without ingress
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 3000
+    nodePort: 30030  # Within Kubernetes NodePort range (30000-32767)
+
+  # Admin credentials
+  # Note: For production, use existingSecret instead of plain passwords
+  admin:
+    existingSecret: ""
+    userKey: admin-user
+    passwordKey: admin-password
+
+  # Admin password (plaintext for training only - change in production!)
+  # Use: kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d
+  adminPassword: admin123
+
+  # Persistence: disabled (uses emptyDir by default)
+  # Data is lost on pod restart, acceptable for training
+  persistence:
+    enabled: false
+    type: emptyDir
+
+  # Resource limits for single-node cluster
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Grafana configuration via grafana.ini
+  # Enable anonymous access for training environment ease-of-use
+  grafana.ini:
+    # Anonymous authentication (convenient for training)
+    auth.anonymous:
+      enabled: true
+      org_role: Admin  # Grant admin role to anonymous users
+      org_name: Main Org.
+
+    # Server configuration
+    server:
+      root_url: http://localhost:30030
+      serve_from_sub_path: false
+
+    # Security (relaxed for training)
+    security:
+      disable_initial_admin_creation: false
+      admin_user: admin
+
+    # Session and analytics (disable in training)
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+
+  # Pre-installed dashboards
+  dashboards:
+    default_home_dashboard_path: ""
+
+  # Data sources are auto-configured by kube-prometheus-stack
+  # Prometheus is added automatically as the default data source
+  additionalDataSources: []
+
+  # Sidecar for ConfigMap dashboards (disabled for now, may enable later)
+  sidecar:
+    dashboards:
+      enabled: false
+    datasources:
+      enabled: false

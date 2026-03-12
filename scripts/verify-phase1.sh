@@ -152,27 +152,20 @@ fi
 # ----------------------------------------------------------------------------
 header "3. Metrics Collection Check"
 
-# Start port-forward for Prometheus queries in background
-PF_PID=""
-cleanup_portforward() {
-    if [[ -n "$PF_PID" ]]; then
-        kill $PF_PID 2>/dev/null || true
-        wait $PF_PID 2>/dev/null || true
-    fi
+# Helper function to query Prometheus via kubectl exec
+query_prometheus() {
+    local query="$1"
+    kubectl exec -it prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -c prometheus -- \
+        wget -qO- "http://localhost:9090/api/v1/query?query=$query" 2>/dev/null || echo ""
 }
-trap cleanup_portforward EXIT
 
-# Start port-forward
-kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n monitoring > /dev/null 2>&1 &
-PF_PID=$!
-sleep 3
-
-# Check if port-forward worked
-if ! curl -s http://localhost:9090/-/healthy > /dev/null 2>&1; then
-    warn "Could not connect to Prometheus API - skipping metrics checks"
+# Check Prometheus pod is ready
+PROM_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=prometheus -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+if [[ -z "$PROM_POD" ]]; then
+    warn "Could not find Prometheus pod - skipping metrics checks"
 else
     # Query for up metric (node-exporter)
-    NODE_EXPORTER_UP=$(curl -s 'http://localhost:9090/api/v1/query?query=up{job="node-exporter"}' 2>/dev/null | grep -o '"status":"success"' || echo "")
+    NODE_EXPORTER_UP=$(query_prometheus 'up{job="node-exporter"}' | grep -o '"status":"success"' || echo "")
     if [[ -n "$NODE_EXPORTER_UP" ]]; then
         pass "Node-exporter metrics being collected"
     else
@@ -180,7 +173,7 @@ else
     fi
 
     # Query for kube-state-metrics
-    KUBE_STATE_UP=$(curl -s 'http://localhost:9090/api/v1/query?query=up{job="kube-state-metrics"}' 2>/dev/null | grep -o '"status":"success"' || echo "")
+    KUBE_STATE_UP=$(query_prometheus 'up{job="kube-state-metrics"}' | grep -o '"status":"success"' || echo "")
     if [[ -n "$KUBE_STATE_UP" ]]; then
         pass "Kube-state-metrics being collected"
     else
@@ -188,16 +181,13 @@ else
     fi
 
     # Check basic up{} query
-    UP_METRICS=$(curl -s 'http://localhost:9090/api/v1/query?query=up' 2>/dev/null | grep -o '"resultType":"vector"' || echo "")
+    UP_METRICS=$(query_prometheus 'up' | grep -o '"resultType":"vector"' || echo "")
     if [[ -n "$UP_METRICS" ]]; then
         pass "Prometheus returning metric data (up query)"
     else
         warn "up{} query did not return vector results"
     fi
 fi
-
-cleanup_portforward
-PF_PID=""
 
 # ----------------------------------------------------------------------------
 # 4. Dashboards
@@ -244,14 +234,17 @@ else
     warn "No PrometheusRule resources found"
 fi
 
-# Try to check alert status via Prometheus (requires port-forward)
-if curl -s http://localhost:9090/-/healthy > /dev/null 2>&1 || (kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n monitoring > /dev/null 2>&1 & sleep 2); then
-    RULE_GROUPS=$(curl -s http://localhost:9090/api/v1/rules 2>/dev/null | grep -o '"groups":\[' | wc -l || echo "0")
+# Check alert status via Prometheus using kubectl exec
+if [[ -n "$PROM_POD" ]]; then
+    RULE_GROUPS=$(kubectl exec -it "$PROM_POD" -n monitoring -c prometheus -- \
+        wget -qO- "http://localhost:9090/api/v1/rules" 2>/dev/null | grep -o '"groups":\[' | wc -l || echo "0")
     if [[ "$RULE_GROUPS" -gt 0 ]]; then
         pass "Prometheus has rule groups configured"
     else
         warn "Could not verify Prometheus rule groups via API"
     fi
+else
+    warn "Could not verify Prometheus rules - pod not found"
 fi
 
 # ----------------------------------------------------------------------------

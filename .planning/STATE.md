@@ -96,6 +96,7 @@
 
 ### Pending Todos
 
+- [Add pre-commit hooks support to the repository](.planning/todos/pending/2026-03-12-add-pre-commit-hooks-support-to-the-repository.md) — tooling — Set up pre-commit framework with markdownlint, YAML validation, and secret detection hooks.
 - [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.
 - [Create getter functions for cluster and tool versions](.planning/todos/pending/2026-03-12-create-getter-functions-for-cluster-and-tool-versions.md) — tooling — Create getter functions for talos version, kubernetes version, kubectl version, helm version, helmfile version, node count, control plane node count, worker node count, node ready status, crd list.
 - [Configure Talos to expose control plane metrics](.planning/todos/completed/2026-03-12-configure-talos-to-expose-control-plane-metrics.md) — tooling — Enable controller-manager, scheduler, kube-proxy metrics endpoints in Talos machine config.

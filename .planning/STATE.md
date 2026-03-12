@@ -91,7 +91,7 @@
 - [Create getter functions for cluster and tool versions](.planning/todos/pending/2026-03-12-create-getter-functions-for-cluster-and-tool-versions.md) — tooling — Create getter functions for talos version, kubernetes version, kubectl version, helm version, helmfile version, node count, control plane node count, worker node count, node ready status, crd list.
 - [Configure Talos to expose control plane metrics](.planning/todos/completed/2026-03-12-configure-talos-to-expose-control-plane-metrics.md) — tooling — Enable controller-manager, scheduler, kube-proxy metrics endpoints in Talos machine config.
 - [Update monitoring stack to scrape Talos control plane metrics](.planning/todos/pending/2026-03-12-configure-talos-control-plane-monitoring.md) — tooling — Add Prometheus scrape configs for Talos control plane components once exposed.
-- [Add mise tasks for Phase 01-02 linting deployment and verification](.planning/todos/pending/2026-03-12-add-mise-tasks-for-phase-01-02-linting-deployment-and-verification.md) — tooling — Add mise tasks for linting values files, deploying stack, and verifying Phase 01-02 components.
+- [Add mise tasks for Phase 01-02 linting deployment and verification](.planning/todos/done/2026-03-12-add-mise-tasks-for-phase-01-02-linting-deployment-and-verification.md) — tooling — Add mise tasks for linting values files, deploying stack, and verifying Phase 01-02 components.
 
 
 ## Phase Context Cache

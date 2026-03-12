@@ -87,7 +87,7 @@
 | 2   | Add a mise task running check_preflight, lint_helmfile and deploy_prom_crds tasks | 2026-03-11 | 19723a8 | [2-add-a-mise-task-running-check-preflight-](./quick/2-add-a-mise-task-running-check-preflight-/) |
 | 3   | Create comprehensive markdown document covering Kubernetes monitoring stack       | 2026-03-12 | f1b2e2e | [3-cr-er-un-document-markdown-dans-docs-r-p-](./quick/3-cr-er-un-document-markdown-dans-docs-r-p-/) |
 | 4   | Fix verify-phase1.sh script - remove set -e and add error handling                 | 2026-03-12 | f9f4848 | [4-fix-verify-phase1-sh-script-remove-set-e](./quick/4-fix-verify-phase1-sh-script-remove-set-e/) |
-| 5   | Update verify-phase1.sh to use kubectl exec instead of port-forwarding             | 2026-03-12 | PENDING | [5-update-verify-phase1-sh-to-use-kubectl-e](./quick/5-update-verify-phase1-sh-to-use-kubectl-e/) |
+| 5   | Update verify-phase1.sh to use kubectl exec instead of port-forwarding             | 2026-03-12 | 246a490 | [5-update-verify-phase1-sh-to-use-kubectl-e](./quick/5-update-verify-phase1-sh-to-use-kubectl-e/) |
 
 
 ## Accumulated Context
@@ -161,7 +161,7 @@
 
 **Last Updated:** 2026-03-12
 
-**Last activity:** 2026-03-12 - Completed quick task 4: Fixed verify-phase1.sh script - removed set -e to prevent premature exits on kubectl failures
+**Last activity:** 2026-03-12 - Completed quick task 5: Updated verify-phase1.sh to use kubectl exec instead of port-forwarding for more reliable Prometheus queries
 
 **Context Hash:** k8s-monitoring-quick-5phases-35reqs
 

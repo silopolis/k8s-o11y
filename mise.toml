@@ -205,27 +205,13 @@ run = [
 ]
 
 # Phase 01-02: Deployment Tasks
+[tasks."deploy:stack"]
+description = "Complete Phase 01-02 deployment workflow: validate → deploy → wait → verify"
+file = ".mise/tasks/deploy/stack"
+
 [tasks.deploy_stack_quick]
 description = "Deploy main kube-prometheus-stack only (CRDs must exist)"
 run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync"
-
-[tasks.deploy_stack]
-description = "Complete Phase 01-02 deployment workflow: validate → deploy → wait → verify"
-run = '''
-echo "=== Phase 01-02: Validating configuration ==="
-mise run validate_stack
-echo ""
-echo "=== Phase 01-02: Deploying stack ==="
-mise run deploy_stack_quick
-echo ""
-echo "=== Phase 01-02: Waiting for pods to be ready (timeout: ${KPS_DEPLOY_WAIT_TIMEOUT}s) ==="
-kubectl wait --for=condition=Ready pods --all -n monitoring --timeout="${KPS_DEPLOY_WAIT_TIMEOUT}s" || echo "Some pods not ready within ${KPS_DEPLOY_WAIT_TIMEOUT}s timeout"
-echo ""
-echo "=== Phase 01-02: Verifying deployment ==="
-mise run verify_stack
-echo ""
-echo "=== Phase 01-02 deployment complete ==="
-'''
 
 [tasks.deploy_stack_diff]
 description = "Show diff before deploying stack"
@@ -247,6 +233,11 @@ helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff
 [tasks.deploy_stack_apply]
 description = "Apply stack with automatic confirmation"
 run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack apply"
+
+# Wave 1 Verification Task
+[tasks."verify:wave1"]
+description = "Verify Wave 1 infrastructure foundation is complete"
+file = ".mise/tasks/verify/wave1"
 
 # Phase 01-02: Verification Tasks
 [tasks.verify_stack]
@@ -295,3 +286,8 @@ kubectl exec -n monitoring "$OPERATOR_POD" -- \
   wget -qO- http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093/api/v2/status 2>/dev/null | \
   jq '.cluster.status' 2>/dev/null || echo "Alertmanager check requires jq or wget"
 """
+
+# Lint Tasks
+[tasks."lint:all"]
+description = "Run all linting checks (markdownlint + shellcheck)"
+file = ".mise/tasks/lint/all"

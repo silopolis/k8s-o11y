@@ -1,3 +1,5 @@
 /.kube
 /.env
 /.talos
+/.helm/cache
+/.helm/data/plugins/helm-diff

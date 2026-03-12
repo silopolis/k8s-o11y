@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+#
+# Verify Talos control plane metrics endpoints are accessible
+# Usage: ./scripts/verify-talos-metrics.sh [node-ip]
+#
+
+set -euo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+header() {
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE}$1${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+}
+
+pass() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+fail() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+warn() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+# Test a single endpoint
+test_endpoint() {
+    local node=$1
+    local port=$2
+    local component=$3
+    local pod_name="verify-${port}-$(date +%s)"
+    
+    echo -n "Testing $component (port $port)... "
+    
+    # Run curl in a pod with hostNetwork
+    local result
+    result=$(kubectl run "$pod_name" --image=curlimages/curl:latest \
+        --restart=Never --overrides='{"spec":{"hostNetwork":true}}' \
+        -- curl -s -o /dev/null -w "%{http_code}" "http://$node:$port/healthz" 2>/dev/null || echo "failed")
+    
+    # Cleanup pod
+    kubectl delete pod "$pod_name" --force 2>/dev/null || true
+    
+    if [ "$result" = "200" ]; then
+        pass "responding (HTTP 200)"
+        return 0
+    else
+        fail "not responding (HTTP $result)"
+        return 1
+    fi
+}
+
+# Main verification
+main() {
+    header "Talos Control Plane Metrics Verification"
+    
+    # Determine nodes to test
+    if [ $# -gt 0 ]; then
+        NODES="$1"
+        echo "Testing specific node: $NODES"
+    else
+        NODES=$(kubectl get nodes -l node-role.kubernetes.io/control-plane \
+          -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo "")
+        
+        if [ -z "$NODES" ]; then
+            echo "No control plane nodes found"
+            exit 1
+        fi
+        
+        NODE_COUNT=$(echo "$NODES" | wc -w)
+        echo "Testing all $NODE_COUNT control plane nodes"
+    fi
+    
+    echo ""
+    
+    local total_passed=0
+    local total_failed=0
+    
+    for node in $NODES; do
+        echo "=== Node: $node ==="
+        
+        local node_passed=0
+        local node_failed=0
+        
+        test_endpoint "$node" "10257" "controller-manager" && ((node_passed++)) || ((node_failed++))
+        test_endpoint "$node" "10259" "scheduler" && ((node_passed++)) || ((node_failed++))
+        test_endpoint "$node" "10249" "kube-proxy" && ((node_passed++)) || ((node_failed++))
+        
+        total_passed=$((total_passed + node_passed))
+        total_failed=$((total_failed + node_failed))
+        
+        echo ""
+    done
+    
+    header "Verification Summary"
+    echo "Endpoints responding: $total_passed"
+    echo "Endpoints failed: $total_failed"
+    echo ""
+    
+    if [ $total_failed -eq 0 ]; then
+        pass "All control plane metrics endpoints are accessible!"
+        echo ""
+        echo "Prometheus should now be able to scrape these endpoints."
+        echo "Next: Configure Prometheus scrape configs for these targets."
+        exit 0
+    else
+        warn "$total_failed endpoint(s) not responding"
+        echo ""
+        echo "Troubleshooting:"
+        echo "  1. Check if talosctl patch was applied: talosctl -n <node> get machineconfig"
+        echo "  2. Verify components restarted after patch application"
+        echo "  3. Check Talos logs: talosctl -n <node> logs"
+        exit 1
+    fi
+}
+
+main "$@"

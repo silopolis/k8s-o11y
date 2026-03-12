@@ -66,9 +66,9 @@ grafana:
       reporting_enabled: false
       check_for_updates: false
 
-  # Pre-installed dashboards
-  dashboards:
-    default_home_dashboard_path: ""
+  # Pre-installed dashboards configuration
+  # Default dashboards are provided by kube-prometheus-stack
+  dashboards: {}
 
   # Data sources are auto-configured by kube-prometheus-stack
   # Prometheus is added automatically as the default data source

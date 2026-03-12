@@ -36,6 +36,8 @@ VAGRANT_NO_PARALLEL = false
 HELM_CACHE_HOME = "{{ env.PROJECT_ROOT}}/.helm/cache"
 HELM_CONFIG_HOME = "{{ env.PROJECT_ROOT}}/.helm/config"
 HELM_DATA_HOME = "{{ env.PROJECT_ROOT}}/.helm/data"
+## Deployment configuration
+KPS_DEPLOY_WAIT_TIMEOUT = "{{ env.KPS_DEPLOY_WAIT_TIMEOUT | default(value=120) }}"
 
 [tasks.cls_up]
 description = "Create Talos cluster using Docker"
@@ -186,8 +188,8 @@ echo ""
 echo "=== Phase 01-02: Deploying stack ==="
 mise run deploy_stack_quick
 echo ""
-echo "=== Phase 01-02: Waiting for pods to be ready ==="
-kubectl wait --for=condition=Ready pods --all -n monitoring --timeout=120s || echo "Some pods not ready within timeout"
+echo "=== Phase 01-02: Waiting for pods to be ready (timeout: ${KPS_DEPLOY_WAIT_TIMEOUT}s) ==="
+kubectl wait --for=condition=Ready pods --all -n monitoring --timeout="${KPS_DEPLOY_WAIT_TIMEOUT}s" || echo "Some pods not ready within ${KPS_DEPLOY_WAIT_TIMEOUT}s timeout"
 echo ""
 echo "=== Phase 01-02: Verifying deployment ==="
 mise run verify_stack

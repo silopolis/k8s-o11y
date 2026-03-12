@@ -41,27 +41,30 @@ releases:
         args:
           - "CRDs installed successfully. Ready for main stack deployment."
 
-  # Wave 2: Main kube-prometheus-stack (disabled for Plan 01)
-  # Will be enabled in 01-02-PLAN.md with dependency on CRDs
+  # Wave 2: Main kube-prometheus-stack
+  # Deployed via 01-02-PLAN.md
   - name: kube-prometheus-stack
     namespace: monitoring
+    createNamespace: true
     chart: prometheus-community/kube-prometheus-stack
-    version: "~69.0.0"  # Latest stable 69.x
-    installed: false
+    version: "~82.10.0"  # Match research findings
     needs:
-      - monitoring/kube-prometheus-stack-crds
+      - kube-prometheus-stack-crds  # Wait for CRDs
     values:
       - values/kube-prometheus-stack.yaml
+      - values/prometheus.yaml
+      - values/grafana.yaml
+      - values/alertmanager.yaml
     wait: true
     hooks:
       - events: ["presync"]
+        showlogs: true
         command: "kubectl"
-        args:
-          - "wait"
-          - "--for=condition=established"
-          - "crd"
-          - "servicemonitors.monitoring.coreos.com"
-          - "--timeout=60s"
+        args: ["wait", "--for", "condition=Established", "crd", "prometheuses.monitoring.coreos.com", "--timeout", "60s"]
+      - events: ["postsync"]
+        showlogs: true
+        command: "kubectl"
+        args: ["wait", "--for", "condition=ready", "pod", "-l", "app.kubernetes.io/name=prometheus", "-n", "monitoring", "--timeout", "300s"]
 
   # Wave 3: Verification (to be enabled in 01-03-PLAN.md)
   # Post-deployment verification jobs

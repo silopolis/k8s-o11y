@@ -45,7 +45,25 @@ checkpoint_type: human-verify
 
 **Outcome:** All monitoring components operational and collecting metrics
 
-**Status:** ✅ Complete (awaiting human verification)
+**Status:** ✅ Complete (verified with control plane monitoring limitation noted)
+
+## Verification Results
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| All pods | ✅ Running | 7 pods healthy in monitoring namespace |
+| Grafana NodePort | ✅ OK | Port 30030 accessible |
+| Grafana UI | ✅ Accessible | Via port-forward, anonymous login working |
+| node-exporter | ✅ UP (3 targets) | Scraping metrics from all 3 nodes |
+| kube-state-metrics | ✅ UP | Collecting cluster object metrics |
+| etcd monitoring | ✅ No errors | Disabled per MON-06, no scrape failures |
+| kube-controller-manager | ⚠️ DOWN | Talos runs as host service, not exposed |
+| kube-scheduler | ⚠️ DOWN | Talos runs as host service, not exposed |
+| kube-proxy | ⚠️ DOWN | Talos runs as host service, not exposed |
+| Alertmanager | ✅ OK | UI accessible, null receiver active |
+| Prometheus | ✅ OK | Collecting metrics, no etcd errors |
+
+**Control Plane Monitoring:** DOWN components are expected with default Talos configuration. Talos runs control plane as host services (not cluster pods), requiring additional configuration to expose metrics. This is documented as a known limitation for Phase 1.
 
 ---
 

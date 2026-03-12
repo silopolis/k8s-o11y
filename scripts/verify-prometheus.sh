@@ -19,26 +19,28 @@ if [ -n "$TARGETS_OUTPUT" ]; then
   # Print header
   echo "Prometheus Targets:"
   echo ""
-  printf "%-28s %-22s %-20s %-10s\n" "JOB" "INSTANCE" "NODE" "HEALTH"
-  printf "%-28s %-22s %-20s %-10s\n" "----------------------------" "----------------------" "--------------------" "----------"
+  printf "%-26s %-20s %-35s %-10s\n" "JOB" "NODE" "SCRAPE_URL" "HEALTH"
+  printf "%-26s %-20s %-35s %-10s\n" "--------------------------" "--------------------" "-----------------------------------" "----------"
   
   # Process targets with jq
   echo "$TARGETS_OUTPUT" | jq -r '
     .data.activeTargets[] | 
     (.labels.job | sub("kube-prometheus-stack-"; "kps-")) + "|" + 
-    .labels.instance + "|" + 
     (.discoveredLabels.__meta_kubernetes_endpoint_node_name // 
-     .discoveredLabels.__meta_kubernetes_pod_node_name // "N/A") + "|" + 
+     .discoveredLabels.__meta_kubernetes_pod_node_name // "N/A") + "|" +
+    .scrapeUrl + "|" +
     .health
-  ' 2>/dev/null | while IFS='|' read -r job instance node health; do
+  ' 2>/dev/null | while IFS='|' read -r job node scrape_url health; do
     # Truncate long names
-    if [ ${#job} -gt 26 ]; then job="${job:0:23}..."; fi
+    if [ ${#job} -gt 24 ]; then job="${job:0:21}..."; fi
     if [ ${#node} -gt 18 ]; then node="${node:0:15}..."; fi
+    # Truncate scrape URL to show just the important part
+    if [ ${#scrape_url} -gt 33 ]; then scrape_url="${scrape_url:0:30}..."; fi
     
     # Status indicator
     if [ "$health" = "up" ]; then status="✓ up"; else status="✗ down"; fi
     
-    printf "%-28s %-22s %-20s %s\n" "$job" "$instance" "$node" "$status"
+    printf "%-26s %-20s %-35s %s\n" "$job" "$node" "$scrape_url" "$status"
   done
   
   echo ""

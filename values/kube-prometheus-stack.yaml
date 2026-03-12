@@ -1,0 +1,86 @@
+# Main kube-prometheus-stack values file
+# Phase 1: Core Observability Stack - Task 2
+# Reference: .planning/phases/01-core-observability-stack/01-02-PLAN.md
+#
+# Purpose: High-level configuration with Talos-compatible defaults
+# Detailed component configs are in separate files (prometheus.yaml, grafana.yaml, etc.)
+
+---
+# Common labels applied to all resources
+commonLabels:
+  organization: "training"
+  managed-by: "helmfile"
+  phase: "01-core-observability-stack"
+
+# Global namespace override
+namespaceOverride: monitoring
+
+# Prometheus configuration
+prometheus:
+  enabled: true
+  prometheusSpec:
+    # Allow ServiceMonitors from any namespace/source
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+
+# Grafana configuration
+grafana:
+  enabled: true
+
+# Node Exporter (DaemonSet for node-level metrics)
+prometheus-node-exporter:
+  enabled: true
+
+# Kube State Metrics
+kube-state-metrics:
+  enabled: true
+
+# CoreDNS monitoring (enabled as per context requirements)
+# CoreDNS is deployed as part of Talos
+kubeDns:
+  enabled: false
+
+coreDns:
+  enabled: true
+  service:
+    port: 9153
+    targetPort: 9153
+    selector:
+      k8s-app: kube-dns
+
+# Control plane components configuration
+kubeEtcd:
+  enabled: false
+  # DISABLED: etcd monitoring is disabled for Talos compatibility
+  # Talos manages etcd differently and standard scraping doesn't work
+
+kubeScheduler:
+  enabled: true
+  service:
+    port: 10259
+    targetPort: 10259
+    selector:
+      component: kube-scheduler
+
+kubeControllerManager:
+  enabled: true
+  service:
+    port: 10257
+    targetPort: 10257
+    selector:
+      component: kube-controller-manager
+
+kubeProxy:
+  enabled: true
+  service:
+    port: 10249
+    targetPort: 10249
+    selector:
+      k8s-app: kube-proxy

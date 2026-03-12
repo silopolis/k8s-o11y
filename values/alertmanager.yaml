@@ -1,0 +1,105 @@
+# Alertmanager-specific configuration values
+# Phase 1: Core Observability Stack - Task 5
+# Reference: .planning/phases/01-core-observability-stack/01-02-PLAN.md
+#
+# Storage: emptyDir (acceptable for training)
+# Receiver: 'null' receiver (silences alerts without sending anywhere)
+
+---
+alertmanager:
+  enabled: true
+
+  # Service configuration: ClusterIP (internal only)
+  # No external access needed - alerts flow internally from Prometheus
+  service:
+    type: ClusterIP
+    port: 9093
+    targetPort: 9093
+
+  # Alertmanager specification
+  alertmanagerSpec:
+    # Storage: emptyDir (acceptable for training environment)
+    # Notifications and silences are lost on pod restart
+    storage:
+      emptyDir:
+        medium: ""
+
+    # Resource limits for single-node cluster
+    resources:
+      requests:
+        cpu: 20m
+        memory: 50Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+    # Retention for alerts and silences
+    retention: 120h  # 5 days
+
+    # No persistent storage
+    # volumeMounts and volumes handled by chart automatically
+
+  # Alertmanager configuration
+  config:
+    global:
+      # SMTP disabled (no email alerts in training)
+      smtp_smarthost: null
+      smtp_from: null
+      smtp_auth_username: null
+      smtp_auth_password: null
+
+      # Resolve timeout
+      resolve_timeout: 5m
+
+      # Slack/PagerDuty disabled
+      slack_api_url: null
+      pagerduty_url: null
+
+    # Default routing configuration
+    route:
+      # Receiver for matched alerts
+      receiver: 'null'
+
+      # Group alerts by these labels
+      group_by: ['alertname', 'severity', 'namespace']
+
+      # Wait for group to accumulate alerts
+      group_wait: 30s
+
+      # Interval between sending notifications for same group
+      group_interval: 5m
+
+      # Minimum interval to re-send same alert
+      repeat_interval: 12h
+
+      # Default routes (catch-all)
+      routes: []
+
+    # Receivers (notification targets)
+    receivers:
+      # Null receiver: silently drops all alerts
+      # Useful for training - alerts are logged but not sent anywhere
+      - name: 'null'
+
+    # Inhibit rules (mute certain alerts when others fire)
+    inhibit_rules:
+      # Inhibit warning alerts if critical alert for same alertname fires
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'namespace']
+
+  # Templates for alert formatting (disabled for now)
+  templateFiles: {}
+
+  # AlertmanagerConfig resources (per-tenant configs)
+  # Disabled - using global config only
+  alertmanagerConfigSelector: {}
+  alertmanagerConfigNamespaceSelector: {}
+
+  # PodDisruptionBudget (disabled for single-node cluster)
+  podDisruptionBudget:
+    enabled: false
+
+  # ServiceMonitor for Prometheus scraping (enabled by default in main chart)

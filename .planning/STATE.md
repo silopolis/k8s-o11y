@@ -36,6 +36,7 @@
 | Phase 01-core-observability-stack P01 | 3m    | 4 tasks | 3 files |
 | Phase 01-core-observability-stack P02 | 19m | 6 tasks | 5 files |
 | Phase 01 P03 | 15m | 7 tasks | 3 files |
+| Phase 01.1-clear-pending-todos-extend-deepen-mise-features-usage-refactor-improve-and-extend-libs-and-scripts P01 | 27m | 8 tasks | 11 files |
 
 ## Decisions Log
 

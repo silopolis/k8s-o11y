@@ -179,10 +179,20 @@ run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync"
 
 [tasks.deploy_stack_diff]
 description = "Show diff before deploying stack"
-run = [
-  "mise run install_helm_plugins",
-  "helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff",
-]
+run = """
+# Check and install helm-diff plugin if needed
+if ! helm plugin list | grep -q diff; then
+  echo "helm-diff plugin not found, installing..."
+  mise run install_helm_plugins
+else
+  echo "helm-diff plugin already installed ✓"
+fi
+
+# Run helmfile diff
+echo ""
+echo "Comparing current state with desired state..."
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff
+"""
 
 [tasks.deploy_stack_apply]
 description = "Apply stack with automatic confirmation"

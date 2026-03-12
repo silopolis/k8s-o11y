@@ -173,9 +173,27 @@ run = [
 ]
 
 # Phase 01-02: Deployment Tasks
-[tasks.deploy_stack]
-description = "Deploy main kube-prometheus-stack (CRDs must exist)"
+[tasks.deploy_stack_quick]
+description = "Deploy main kube-prometheus-stack only (CRDs must exist)"
 run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync"
+
+[tasks.deploy_stack]
+description = "Complete Phase 01-02 deployment workflow: validate → deploy → wait → verify"
+run = '''
+echo "=== Phase 01-02: Validating configuration ==="
+mise run validate_stack
+echo ""
+echo "=== Phase 01-02: Deploying stack ==="
+mise run deploy_stack_quick
+echo ""
+echo "=== Phase 01-02: Waiting for pods to be ready ==="
+kubectl wait --for=condition=Ready pods --all -n monitoring --timeout=120s || echo "Some pods not ready within timeout"
+echo ""
+echo "=== Phase 01-02: Verifying deployment ==="
+mise run verify_stack
+echo ""
+echo "=== Phase 01-02 deployment complete ==="
+'''
 
 [tasks.deploy_stack_diff]
 description = "Show diff before deploying stack"
@@ -245,22 +263,3 @@ kubectl exec -n monitoring "$OPERATOR_POD" -- \
   wget -qO- http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093/api/v2/status 2>/dev/null | \
   jq '.cluster.status' 2>/dev/null || echo "Alertmanager check requires jq or wget"
 """
-
-# Phase 01-02: Composite Workflow Task
-[tasks.phase_02_deploy]
-description = "Complete Phase 01-02 deployment workflow: validate → deploy → verify"
-run = [
-  "echo '=== Phase 01-02: Validating configuration ==='",
-  "mise run validate_stack",
-  "echo ''",
-  "echo '=== Phase 01-02: Deploying stack ==='",
-  "mise run deploy_stack",
-  "echo ''",
-  "echo '=== Phase 01-02: Waiting for pods (30s) ==='",
-  "sleep 30",
-  "echo ''",
-  "echo '=== Phase 01-02: Verifying deployment ==='",
-  "mise run verify_stack",
-  "echo ''",
-  "echo '=== Phase 01-02 deployment complete ==='",
-]

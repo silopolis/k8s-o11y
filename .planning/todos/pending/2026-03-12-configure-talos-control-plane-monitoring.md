@@ -1,6 +1,6 @@
 ---
 created: 2026-03-12T10:30:00Z
-title: Configure Talos control plane monitoring for kube-prometheus-stack
+title: Update monitoring stack to scrape Talos control plane metrics
 area: tooling
 files:
   - values/prometheus.yaml
@@ -9,73 +9,138 @@ files:
 
 ## Problem
 
-Control plane components (kube-controller-manager, kube-scheduler, kube-proxy) are showing as DOWN in Prometheus targets:
+Once Talos is configured to expose control plane metrics (see related todo: "Configure Talos to expose control plane metrics"), the kube-prometheus-stack needs to be updated to scrape these metrics from the node IPs.
 
-**Current State:**
-- kube-controller-manager DOWN
-- kube-scheduler DOWN
-- kube-proxy DOWN
+**Current State (After Talos Configuration):**
+- kube-controller-manager metrics exposed on node port 10257
+- kube-scheduler metrics exposed on node port 10259
+- kube-proxy metrics exposed on node port 10249
+- Prometheus still showing these components as DOWN
 
 **Root Cause:**
-Talos Linux runs control plane components as host services (systemd/static pods) rather than as regular cluster pods. By default, kube-prometheus-stack's ServiceMonitors look for these components via Kubernetes service endpoints, but:
-
-1. Talos doesn't expose these metrics on the default ports by default
-2. The components aren't accessible via cluster networking
-3. kube-prometheus-stack default scrape configs assume standard Kubernetes deployment
-
-**Prometheus Discovery Log:**
-```
-msg="Using pod service account via in-cluster config" 
-component="discovery manager scrape" 
-discovery=kubernetes 
-config=serviceMonitor/monitoring/kube-prometheus-stack-kube-scheduler/0
-```
-
-The ServiceMonitor exists but endpoints aren't accessible.
+kube-prometheus-stack default ServiceMonitors assume control plane components run as pods with Kubernetes endpoints. On Talos:
+1. Components run as host services, not pods
+2. Metrics are on node IPs, not service endpoints
+3. Default scrape configs use `kubernetes_sd_configs: role: endpoints` which won't find host services
 
 ## Solution
 
-To monitor Talos control plane components, need to:
+Update Prometheus configuration to scrape control plane components via node IPs:
 
-1. **Configure Talos to expose metrics**
-   - Enable metrics endpoints in Talos machine config
-   - Or use node-exporter host network to reach host ports
+1. **Disable default ServiceMonitors for control plane**
+   In values/kube-prometheus-stack.yaml:
+   ```yaml
+   kubeControllerManager:
+     enabled: false  # Disable default ServiceMonitor
+   
+   kubeScheduler:
+     enabled: false  # Disable default ServiceMonitor
+   
+   kubeProxy:
+     enabled: false  # Disable default ServiceMonitor
+   ```
 
-2. **Update Prometheus scrape configuration**
-   Add additional scrape configs to reach control plane via node IPs:
+2. **Add custom scrape configs for Talos control plane**
+   In values/prometheus.yaml, add additional scrape configs:
    ```yaml
    prometheus:
      prometheusSpec:
        additionalScrapeConfigs:
-         - job_name: 'kubernetes-controller-manager'
+         # Controller Manager
+         - job_name: 'talos-controller-manager'
            kubernetes_sd_configs:
              - role: node
            relabel_configs:
              - source_labels: [__address__]
                target_label: __param_target
-             - target_label: __address__
-               replacement: kubernetes.default.svc:443
-             - source_labels: [__meta_kubernetes_node_name]
-               target_label: instance
+             - source_labels: [__param_target]
+               regex: ([^:]+):\d+
+               replacement: ${1}:10257
+               target_label: __address__
+             - action: labelmap
+               regex: __meta_kubernetes_node_label_(.+)
+             - target_label: __metrics_path__
+               replacement: /metrics
            scheme: https
            tls_config:
-             ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+             insecure_skip_verify: true
            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+           
+         # Scheduler
+         - job_name: 'talos-scheduler'
+           kubernetes_sd_configs:
+             - role: node
+           relabel_configs:
+             - source_labels: [__address__]
+               target_label: __param_target
+             - source_labels: [__param_target]
+               regex: ([^:]+):\d+
+               replacement: ${1}:10259
+               target_label: __address__
+             - action: labelmap
+               regex: __meta_kubernetes_node_label_(.+)
+             - target_label: __metrics_path__
+               replacement: /metrics
+           scheme: https
+           tls_config:
+             insecure_skip_verify: true
+           bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+           
+         # Kube Proxy
+         - job_name: 'talos-kube-proxy'
+           kubernetes_sd_configs:
+             - role: node
+           relabel_configs:
+             - source_labels: [__address__]
+               target_label: __param_target
+             - source_labels: [__param_target]
+               regex: ([^:]+):\d+
+               replacement: ${1}:10249
+               target_label: __address__
+             - action: labelmap
+               regex: __meta_kubernetes_node_label_(.+)
+             - target_label: __metrics_path__
+               replacement: /metrics
+           scheme: http  # kube-proxy uses HTTP
    ```
 
-3. **Alternative: Use Talos-specific scrape endpoints**
-   Talos may expose aggregated metrics via its own endpoints
+## Prerequisites
 
-## References
+**MUST be completed first:**
+- [Configure Talos to expose control plane metrics](2026-03-12-configure-talos-to-expose-control-plane-metrics.md)
+  - Controller-manager exposing :10257
+  - Scheduler exposing :10259
+  - Kube-proxy exposing :10249
 
-- kube-prometheus-stack issue: Control plane scraping on non-kubeadm clusters
-- Talos documentation: Machine configuration for metrics exposure
-- Prometheus configuration: Additional scrape configs for static targets
+## Verification
+
+After applying configuration:
+```bash
+# Check new scrape targets appear
+kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n monitoring
+# Open http://localhost:9090/targets
+# Look for talos-controller-manager, talos-scheduler, talos-kube-proxy jobs
+
+# Verify metrics are being collected
+kubectl exec -it prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -- \
+  wget -qO- http://localhost:9090/api/v1/targets | grep talos
+```
+
+## Deployment Steps
+
+1. Verify Talos metrics endpoints are exposed (curl test from node)
+2. Update values/prometheus.yaml with additionalScrapeConfigs
+3. Update values/kube-prometheus-stack.yaml to disable defaults
+4. Apply changes: `helmfile -f helmfile.yaml sync`
+5. Verify targets in Prometheus UI
 
 ## Priority
 
-**Low** - Core metrics (node-exporter, kube-state-metrics) are working. Control plane monitoring is supplemental for Phase 1.
+**Low** - Depends on Talos configuration todo. Core metrics working without this.
 
-## Workaround
+## References
 
-For now, document that control plane metrics are not available and track node-level metrics via node-exporter instead.
+- kube-prometheus-stack documentation: additionalScrapeConfigs
+- Prometheus documentation: relabel_configs and kubernetes_sd_configs
+- Related todo: Configure Talos to expose control plane metrics
+

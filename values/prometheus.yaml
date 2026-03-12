@@ -1,0 +1,70 @@
+# Prometheus-specific configuration values
+# Phase 1: Core Observability Stack - Task 3
+# Reference: .planning/phases/01-core-observability-stack/01-02-PLAN.md
+#
+# Storage type: emptyDir (not PVC) per CONTEXT.md decision
+# Retention: 2-3 days, 2GB limit per CONTEXT.md decision
+
+---
+prometheus:
+  prometheusSpec:
+    # Storage configuration: emptyDir for Talos Docker environment
+    # Using emptyDir because:
+    # 1. Single-node Talos cluster without persistent storage class
+    # 2. Training environment - data loss acceptable
+    # 3. Talos doesn't provide dynamic PVC provisioning by default
+    storageSpec:
+      emptyDir:
+        medium: ""
+        sizeLimit: 2Gi
+
+    # Retention configuration: 2-3 days as decided in CONTEXT.md
+    # Combined retention settings to keep storage under control
+    retention: "3d"
+    retentionSize: "2GB"
+
+    # Resource limits for single-node Talos cluster
+    # Balanced for training workloads without starving other pods
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    # Performance and security features
+    enableAdminAPI: false  # Security: disable admin API in training env
+    walCompression: true   # Enable WAL compression to save disk space
+    enableFeatures: []
+
+    # Disable features we don't need for training
+    disableCompaction: false
+
+    # Scrape configuration: use ServiceMonitors instead of static configs
+    # ServiceMonitors provide dynamic discovery via labels
+    additionalScrapeConfigs: []
+
+    # External labels for identification
+    # Organization label from environment or default
+    externalLabels:
+      organization: "${ORGANIZATION:-training}"
+      cluster: "talos-local"
+      replica: "$(POD_NAME)"
+
+    # Relabel configs for common Kubernetes metadata
+    relabelings: []
+
+    # Alertmanager integration
+    alertingEndpoints:
+      - name: "alertmanager"
+        namespace: monitoring
+        port: 9093
+        scheme: http
+
+    # Remote read/write disabled for training environment
+    remoteRead: []
+    remoteWrite: []
+
+    # No persistent storage (emptyDir only)
+    # Volume mounts are handled by the chart automatically

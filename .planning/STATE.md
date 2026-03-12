@@ -96,6 +96,7 @@
 
 ### Pending Todos
 
+- [Add proper project main README.md file](.planning/todos/pending/2026-03-12-add-proper-project-main-readme-md-file.md) — docs — Create comprehensive README.md at repository root with project overview, quick start, and documentation links.
 - [Fix Talos control plane metrics exposition](.planning/todos/pending/2026-03-12-fix-talos-control-plane-metrics-exposition.md) — tooling — Review and fix issues with the completed Talos control plane metrics configuration.
 - [Add markdownlint-cli to mise tools and pre-commit checking](.planning/todos/pending/2026-03-12-add-markdownlint-cli-to-mise-tools-and-pre-commit-checking.md) — tooling — Add markdownlint-cli2 as a mise tool and create lint task for markdown files.
 - [Add shellcheck checking to check scripts, tasks and pre-commit](.planning/todos/pending/2026-03-12-add-shellcheck-checking-to-check-scripts-tasks-and-pre-commit.md) — tooling — Integrate shellcheck static analysis for shell scripts in scripts/ directory and pre-commit hooks.

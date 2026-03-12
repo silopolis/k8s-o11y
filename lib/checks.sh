@@ -15,7 +15,7 @@ check_kubectl_installed() {
         return 0
     else
         fail "kubectl is not installed or not in PATH"
-        echo "  Install: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+        detail "Install: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
         return 1
     fi
 }
@@ -33,8 +33,8 @@ check_cluster_connectivity() {
         return 0
     else
         fail "Cannot connect to Kubernetes cluster"
-        echo "  Check: kubectl config get-contexts"
-        echo "  Fix: kubectl config use-context <your-context>"
+        detail "Check: kubectl config get-contexts"
+        detail "Fix: kubectl config use-context <your-context>"
         return 1
     fi
 }
@@ -48,7 +48,7 @@ check_helm_installed() {
         return 0
     else
         fail "Helm is not installed"
-        echo "  Install: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
+        detail "Install: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
         return 1
     fi
 }
@@ -62,8 +62,8 @@ check_helmfile_installed() {
         return 0
     else
         fail "Helmfile is not installed"
-        echo "  Install: https://helmfile.readthedocs.io/en/latest/#installation"
-        echo "  Quick install: brew install helmfile"
+        detail "Install: https://helmfile.readthedocs.io/en/latest/#installation"
+        detail "Quick install: brew install helmfile"
         return 1
     fi
 }
@@ -81,7 +81,7 @@ check_node_health() {
             return 0
         else
             fail "$NOT_READY node(s) are not Ready"
-            echo "  Check: kubectl get nodes"
+            detail "Check: kubectl get nodes"
             kubectl get nodes 2>/dev/null | tail -n +2
             return 1
         fi
@@ -100,7 +100,7 @@ check_metrics_api() {
         return 0
     else
         warn "Metrics API not available (metrics-server may not be installed)"
-        echo "  This is OK for preflight - basic node check passes"
+        detail "This is OK for preflight - basic node check passes"
         return 2
     fi
 }
@@ -112,12 +112,12 @@ check_monitoring_namespace() {
         NS_PODS=$(kubectl get pods -n monitoring --no-headers 2>/dev/null | wc -l)
         if [ "$NS_PODS" -eq 0 ]; then
             warn "Namespace 'monitoring' exists but is empty"
-            echo "  Continuing - CRDs will be installed in this namespace"
+            detail "Continuing - CRDs will be installed in this namespace"
             return 2
         else
             warn "Namespace 'monitoring' exists with $NS_PODS pod(s)"
-            echo "  Existing resources may conflict with new deployment"
-            echo "  Consider: kubectl delete namespace monitoring"
+            detail "Existing resources may conflict with new deployment"
+            detail "Consider: kubectl delete namespace monitoring"
             return 2
         fi
     else
@@ -133,11 +133,11 @@ check_prometheus_crds() {
     if [ "$EXISTING_CRDS" -gt 0 ]; then
         CRD_LIST=$(kubectl get crd 2>/dev/null | grep "monitoring.coreos.com" | awk '{print $1}' | head -5)
         warn "Found $EXISTING_CRDS Prometheus Operator CRD(s) already installed"
-        echo "  CRDs found:"
+        detail "CRDs found:"
         echo "$CRD_LIST" | while read crd; do
-            echo "    - $crd"
+            bullet "$crd"
         done
-        echo "  If versions are compatible, this is OK. CRDs will be updated."
+        detail "If versions are compatible, this is OK. CRDs will be updated."
         return 2
     else
         pass "No existing Prometheus Operator CRDs found (clean install)"
@@ -153,8 +153,8 @@ check_org_config() {
         return 0
     else
         warn "ORGANIZATION environment variable is not set"
-        echo "  Helmfile will use default value 'dev-org'"
-        echo "  To set: export ORGANIZATION=<your-org-name>"
+        detail "Helmfile will use default value 'dev-org'"
+        detail "To set: export ORGANIZATION=<your-org-name>"
         return 2
     fi
 }

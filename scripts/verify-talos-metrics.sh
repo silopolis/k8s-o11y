@@ -93,16 +93,16 @@ main() {
     if [ $total_failed -eq 0 ]; then
         pass "All control plane metrics endpoints are accessible!"
         echo ""
-        echo "Prometheus should now be able to scrape these endpoints."
-        echo "Next: Configure Prometheus scrape configs for these targets."
+        detail "Prometheus should now be able to scrape these endpoints."
+        detail "Next: Configure Prometheus scrape configs for these targets."
         exit 0
     else
         warn "$total_failed endpoint(s) not responding"
         echo ""
         echo "Troubleshooting:"
-        echo "  1. Check if talosctl patch was applied: talosctl -n <node> get machineconfig"
-        echo "  2. Verify components restarted after patch application"
-        echo "  3. Check Talos logs: talosctl -n <node> logs"
+        detail "1. Check if talosctl patch was applied: talosctl -n <node> get machineconfig"
+        detail "2. Verify components restarted after patch application"
+        detail "3. Check Talos logs: talosctl -n <node> logs"
         exit 1
     fi
 }

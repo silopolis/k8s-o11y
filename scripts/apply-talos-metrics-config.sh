@@ -96,7 +96,7 @@ main() {
     NODE_COUNT=$(echo "$NODES" | wc -w)
     echo "Found $NODE_COUNT control plane node(s):"
     for node in $NODES; do
-        echo "  - $node"
+        bullet "$node"
     done
     echo ""
     
@@ -121,8 +121,8 @@ main() {
         if ! apply_to_node "$node"; then
             fail "Failed to apply configuration to node $node"
             echo ""
-            echo "Rolling update stopped. Previous nodes were configured successfully."
-            echo "To rollback, restore from backup in .talos/backup-*/"
+            detail "Rolling update stopped. Previous nodes were configured successfully."
+            detail "To rollback, restore from backup in .talos/backup-*/"
             exit 1
         fi
     done
@@ -134,13 +134,13 @@ main() {
         pass "All control plane nodes configured successfully!"
         echo ""
         echo "Next steps:"
-        echo "  1. Verify Prometheus can scrape the new endpoints"
-        echo "  2. Check Prometheus targets page for controller-manager, scheduler, kube-proxy"
-        echo "  3. Configure Prometheus scrape configs if needed"
+        detail "1. Verify Prometheus can scrape the new endpoints"
+        detail "2. Check Prometheus targets page for controller-manager, scheduler, kube-proxy"
+        detail "3. Configure Prometheus scrape configs if needed"
     else
         warn "Completed with $(get_errors) error(s) and $(get_warnings) warning(s)"
         echo ""
-        echo "Review the output above for any issues."
+        detail "Review the output above for any issues."
     fi
 }
 

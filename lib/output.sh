@@ -42,6 +42,16 @@ info() {
     echo -e "${BLUE}ℹ${NC} $1"
 }
 
+# Print indented detail message (2 spaces)
+detail() {
+    echo "  $1"
+}
+
+# Print bullet point with 4-space indent
+bullet() {
+    echo "    - $1"
+}
+
 # Get current error count
 get_errors() {
     echo "$ERRORS"

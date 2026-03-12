@@ -8,36 +8,66 @@ k9s = "latest"
 yq = "latest"
 helm = "4.0.4"
 helmfile = "1.4.1"
+age = "latest"
+markdownlint-cli2 = "latest"
+pre-commit = "latest"
+shellcheck = "latest"
+sops = "latest"
 
 [env]
 ## User overrides
-_.file = ".env"
+_.file = [
+  { path = ".env", optional = true },
+  { path = ".env.local", optional = true },
+  { path = ".env.yaml", optional = true, redact = true },
+]
 _.source = ".envrc"
 ## Project global variables
 PROJECT_NAME = "{{ env.PROJECT_NAME | default(value=config_root | basename) }}"
 PROJECT_ROOT = "{{config_root}}"
+## Encryption and secrets
+KEY_DIR = "{{ env.KEY_DIR | default(value=env.PROJECT_ROOT ~ '/.mise') }}"
+KEY_FILE = "{{ env.KEY_DIR }}/age.key"
+PUB_FILE = "{{ env.KEY_DIR }}/age.pub"
+SOPS_CONFIG = "{{ env.SOPS_CONFIG | default(value=env.PROJECT_ROOT ~ '/.sops.yaml') }}"
+SOPS_AGE_KEY_FILE = "{{ env.KEY_FILE }}"
+MISE_AGE_KEY_FILE = "{{ env.KEY_FILE }}"
+ENC_ENV_FILE = "{{ env.ENC_ENV_FILE | default(value=env.PROJECT_ROOT ~ '/.env.yaml') }}"
 ## Cluster configuration
 TALOS_CLUSTER_NAME = "{{ env.TALOS_CLUSTER_NAME | default(value=env.PROJECT_NAME) }}"
 TALOS_CONTEXT = "{{ env.TALOS_CONTEXT | default(value=env.TALOS_CLUSTER_NAME) }}"
-TALOSHOME = "{{ env.PROJECT_ROOT}}/.talos"
-TALOS_HOME = "{{ env.PROJECT_ROOT}}/.talos"
-TALOSCONFIG = "{{ env.TALOS_HOME}}/talosconfig"
-TALOS_STATE_DIR = "{{ env.TALOS_HOME}}/clusters"
+TALOSHOME = "{{ env.PROJECT_ROOT }}/.talos"
+TALOS_HOME = "{{ env.PROJECT_ROOT }}/.talos"
+TALOSCONFIG = "{{ env.TALOS_HOME }}/talosconfig"
+TALOS_STATE_DIR = "{{ env.TALOS_HOME }}/clusters"
 TALOS_CONTROL_PLANE_COUNT = "{{ env.TALOS_CONTROL_PLANE_COUNT | default(value=1) }}"
 TALOS_WORKER_COUNT = "{{ env.TALOS_WORKER_COUNT | default(value=2) }}"
 ## Kubernetes client API config
-KUBECONFIG = "{{ env.PROJECT_ROOT}}/.kube/config"
+KUBECONFIG = "{{ env.PROJECT_ROOT }}/.kube/config"
 ## Vagrant configuration
 VAGRANT_CWD = "{{ config_root }}"
 VAGRANT_DEFAULT_PROVIDER = "libvirt"
 VAGRANT_NO_PARALLEL = false
 #VAGRANT_EXPERIMENTAL = "none_communicator"
 ## Helm configuration
-HELM_CACHE_HOME = "{{ env.PROJECT_ROOT}}/.helm/cache"
-HELM_CONFIG_HOME = "{{ env.PROJECT_ROOT}}/.helm/config"
-HELM_DATA_HOME = "{{ env.PROJECT_ROOT}}/.helm/data"
+HELM_CACHE_HOME = "{{ env.PROJECT_ROOT }}/.helm/cache"
+HELM_CONFIG_HOME = "{{ env.PROJECT_ROOT }}/.helm/config"
+HELM_DATA_HOME = "{{ env.PROJECT_ROOT }}/.helm/data"
 ## Deployment configuration
 KPS_DEPLOY_WAIT_TIMEOUT = "{{ env.KPS_DEPLOY_WAIT_TIMEOUT | default(value=120) }}"
+
+[tasks.secrets-age-init]
+description = "Initialize age encryption keys for SOPS"
+run = "./scripts/secrets-age-init.sh"
+
+[tasks.secrets-init]
+description = "Create encrypted .env.enc file with placeholder secrets"
+run = "./scripts/secrets-init.sh"
+
+# FIXME Runs in shell but not as task
+[tasks.secrets-edit]
+description = "Edit encrypted secrets file"
+run = "sops .env.yaml"
 
 [tasks.cls_up]
 description = "Create Talos cluster using Docker"

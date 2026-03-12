@@ -1,5 +1,14 @@
 /.kube
 /.env
+/.env.local
+/.env.enc
+/.env.yaml
+/.env.json
+/.env.toml
+/.env
 /.talos
 /.helm/cache
 /.helm/data/plugins/helm-diff
+*.key
+*.pub
+age.key

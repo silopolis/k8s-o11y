@@ -13,13 +13,6 @@
 
 set -euo pipefail
 
-# Add mise paths if available (for tools managed by mise)
-if [ -d "$HOME/.local/share/mise/shims" ]; then
-    export PATH="$HOME/.local/share/mise/shims:$PATH"
-elif [ -d "/home/linuxbrew/.linuxbrew/bin" ]; then
-    export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-fi
-
 # Source shared libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

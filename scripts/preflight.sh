@@ -24,41 +24,12 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source shared libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Track warnings and failures
-WARNINGS=0
-ERRORS=0
-
-# Print functions
-header() {
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}$1${NC}"
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-}
-
-pass() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-fail() {
-    echo -e "${RED}✗${NC} $1"
-    ((ERRORS++)) || true
-}
-
-warn() {
-    echo -e "${YELLOW}⚠${NC} $1"
-    ((WARNINGS++)) || true
-}
-
-info() {
-    echo -e "${BLUE}ℹ${NC} $1"
-}
+# Source output library for colors and print functions
+source "${PROJECT_ROOT}/lib/output.sh"
 
 # Source check functions
 source "${PROJECT_ROOT}/lib/checks.sh"

@@ -139,12 +139,26 @@ echo "Template written to: $TEMPLATE_FILE"
 echo "Lines: $(wc -l < $TEMPLATE_FILE)"
 """
 
+[tasks.lint_template]
+description = "Lint the templated YAML for syntax errors"
+run = """
+TEMPLATE_FILE=$(mktemp -t stack-template-XXXXXX.yaml)
+echo "Generating template..."
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > "$TEMPLATE_FILE"
+echo "Linting template: $TEMPLATE_FILE"
+echo "Documents: $(yq eval 'documentIndex' "$TEMPLATE_FILE" 2>/dev/null | tail -1)"
+echo "Validating YAML syntax..."
+yq eval '.' "$TEMPLATE_FILE" > /dev/null && echo "✓ Template is valid YAML"
+rm -f "$TEMPLATE_FILE"
+"""
+
 [tasks.validate_stack]
 description = "Validate stack configuration (lint + template check)"
 run = [
   "mise run lint_helmfile",
   "mise run lint_values",
   "mise run template_stack",
+  "mise run lint_template",
 ]
 
 # Phase 01-02: Deployment Tasks

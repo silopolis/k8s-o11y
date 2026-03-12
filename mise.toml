@@ -220,7 +220,12 @@ kubectl exec -n monitoring "$OPERATOR_POD" -- \
 description = "Verify Prometheus retention configuration"
 run = """
 echo "Checking Prometheus retention..."
-kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.retention}' 2>/dev/null || echo "Retention not configured via Prometheus CR"
+RETENTION=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.retention}' 2>/dev/null)
+if [ -n "$RETENTION" ]; then
+  echo "Retention: $RETENTION"
+else
+  echo "Retention not configured via Prometheus CR"
+fi
 """
 
 [tasks.verify_grafana]

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# [MISE] description="Complete Phase 01-02 deployment workflow: validate → deploy → wait → verify"
+# [MISE] depends=["validate_stack"]
+
+set -e
+
+echo "=== Phase 01-02: Validating configuration ==="
+mise run validate_stack
+echo ""
+echo "=== Phase 01-02: Deploying stack ==="
+mise run deploy_stack_quick
+echo ""
+echo "=== Phase 01-02: Waiting for pods to be ready (timeout: ${KPS_DEPLOY_WAIT_TIMEOUT}s) ==="
+kubectl wait --for=condition=Ready pods --all -n monitoring --timeout="${KPS_DEPLOY_WAIT_TIMEOUT}s" || echo "Some pods not ready within ${KPS_DEPLOY_WAIT_TIMEOUT}s timeout"
+echo ""
+echo "=== Phase 01-02: Verifying deployment ==="
+mise run verify_stack
+echo ""
+echo "=== Phase 01-02 deployment complete ==="

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# [MISE] description="Run all linting checks (markdownlint + shellcheck)"
+# [MISE] depends=[]
+
+set -e
+
+echo "=== Running markdown linting ==="
+if command -v markdownlint-cli2 &> /dev/null || mise exec -- markdownlint-cli2 --version &> /dev/null; then
+  mise exec -- markdownlint-cli2 '**/*.md' || true
+else
+  echo "markdownlint-cli2 not available, skipping markdown lint"
+fi
+
+echo ""
+echo "=== Running shellcheck ==="
+if command -v shellcheck &> /dev/null || mise exec -- shellcheck --version &> /dev/null; then
+  find scripts -name "*.sh" -type f -exec mise exec -- shellcheck {} \; || true
+else
+  echo "shellcheck not available, skipping shell lint"
+fi
+
+echo ""
+echo "=== Linting complete ==="

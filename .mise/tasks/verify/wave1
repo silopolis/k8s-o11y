@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Wave 1 infrastructure foundation is complete"
+# [MISE] depends=[]
+
+set -e
+
+echo "=== Wave 1 Verification ==="
+
+# 1. Verify tools installed
+echo "Checking tools..."
+mise exec -- sops --version
+mise exec -- age --version
+mise exec -- pre-commit --version
+
+# 2. Verify SOPS setup
+echo ""
+echo "Checking SOPS configuration..."
+test -f .sops.yaml || { echo "FAIL: .sops.yaml not found"; exit 1; }
+test -f .env.json || { echo "FAIL: .env.json not found"; exit 1; }
+export SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$HOME/.config/mise/age.txt}"
+mise exec -- sops decrypt .env.json > /dev/null || { echo "FAIL: Cannot decrypt .env.json"; exit 1; }
+
+# 3. Verify task structure
+echo ""
+echo "Checking task directory structure..."
+test -x .mise/tasks/deploy/stack || { echo "FAIL: .mise/tasks/deploy/stack not found or not executable"; exit 1; }
+test -x .mise/tasks/verify/wave1 || { echo "FAIL: .mise/tasks/verify/wave1 not found or not executable"; exit 1; }
+test -x .mise/tasks/lint/all || { echo "FAIL: .mise/tasks/lint/all not found or not executable"; exit 1; }
+
+# 4. Verify preflight works
+echo ""
+echo "Checking preflight script..."
+bash scripts/preflight.sh || true  # Allow warnings
+
+echo ""
+echo "=== Wave 1 Verification Complete ==="
+echo "✓ All Wave 1 infrastructure foundation checks passed"

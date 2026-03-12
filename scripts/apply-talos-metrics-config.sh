@@ -10,40 +10,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 source "${PROJECT_ROOT}/lib/output.sh"
+source "${PROJECT_ROOT}/lib/talos.sh"
 
 PATCH_FILE="${PROJECT_ROOT}/config/talos/control-plane-metrics-patch.yaml"
 SLEEP_DURATION=45
-
-# Check prerequisites
-check_prerequisites() {
-    header "Prerequisites Check"
-    
-    if ! command -v talosctl &> /dev/null; then
-        fail "talosctl not found in PATH"
-        exit 1
-    fi
-    pass "talosctl is available"
-    
-    if ! command -v kubectl &> /dev/null; then
-        fail "kubectl not found in PATH"
-        exit 1
-    fi
-    pass "kubectl is available"
-    
-    if [ ! -f "$PATCH_FILE" ]; then
-        fail "Patch file not found: $PATCH_FILE"
-        exit 1
-    fi
-    pass "Patch file exists: $PATCH_FILE"
-    
-    echo ""
-}
-
-# Get control plane nodes
-get_control_plane_nodes() {
-    kubectl get nodes -l node-role.kubernetes.io/control-plane \
-      -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo ""
-}
 
 # Apply configuration to a single node
 apply_to_node() {
@@ -96,9 +66,9 @@ apply_to_node() {
     # Verify metrics endpoints
     echo ""
     echo "Verifying metrics endpoints..."
-    verify_metrics_endpoint "$node" "10257" "controller-manager"
-    verify_metrics_endpoint "$node" "10259" "scheduler"
-    verify_metrics_endpoint "$node" "10249" "kube-proxy"
+    verify_talos_metrics_endpoint "$node" "10257" "controller-manager"
+    verify_talos_metrics_endpoint "$node" "10259" "scheduler"
+    verify_talos_metrics_endpoint "$node" "10249" "kube-proxy"
     
     echo ""
     pass "=== Node $node completed ==="
@@ -107,33 +77,13 @@ apply_to_node() {
     return 0
 }
 
-# Verify a single metrics endpoint
-verify_metrics_endpoint() {
-    local node=$1
-    local port=$2
-    local component=$3
-    
-    # Create a test pod with hostNetwork to access the endpoint
-    local pod_name="metrics-test-${port}-$(date +%s)"
-    
-    if kubectl run "$pod_name" --image=curlimages/curl:latest \
-        --restart=Never --overrides='{"spec":{"hostNetwork":true}}' \
-        -- curl -s -o /dev/null -w "%{http_code}" "http://'$node':'$port'/healthz" 2>/dev/null | grep -q "200"; then
-        pass "$component metrics endpoint responding (port $port)"
-        kubectl delete pod "$pod_name" --force 2>/dev/null || true
-    else
-        warn "$component metrics endpoint not responding yet (port $port)"
-        kubectl delete pod "$pod_name" --force 2>/dev/null || true
-    fi
-}
-
 # Main execution
 main() {
     header "Talos Control Plane Metrics Configuration"
     echo "This script will configure Talos to expose control plane component metrics"
     echo ""
     
-    check_prerequisites
+    check_talos_prerequisites "$PATCH_FILE"
     
     # Get nodes
     NODES=$(get_control_plane_nodes)

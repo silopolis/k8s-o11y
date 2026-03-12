@@ -10,6 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 source "${PROJECT_ROOT}/lib/output.sh"
+source "${PROJECT_ROOT}/lib/talos.sh"
 
 # Custom fail function that doesn't track errors
 fail_simple() {
@@ -52,8 +53,7 @@ main() {
         NODES="$1"
         echo "Testing specific node: $NODES"
     else
-        NODES=$(kubectl get nodes -l node-role.kubernetes.io/control-plane \
-          -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo "")
+        NODES=$(get_control_plane_nodes)
         
         if [ -z "$NODES" ]; then
             echo "No control plane nodes found"

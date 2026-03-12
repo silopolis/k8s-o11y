@@ -210,9 +210,12 @@ kubectl get svc -n monitoring
 echo ""
 echo "=== Checking prometheus targets ==="
 kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n monitoring &
+PF_PID=$!
 sleep 2
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health == \"up\") | .labels.job' 2>/dev/null || echo "Targets check requires jq"
-pkill -f "port-forward" || true
+echo ""
+echo "Shutting down port-forward (PID: $PF_PID)..."
+kill $PF_PID 2>/dev/null || echo "Port-forward already stopped"
 """
 
 [tasks.verify_retention]

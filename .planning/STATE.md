@@ -86,7 +86,7 @@
 | 1   | Add mise tasks for phase one operations                                           | 2026-03-11 | 0cc0cf1 | [1-add-mise-tasks-for-phase-one-operations-](./quick/1-add-mise-tasks-for-phase-one-operations-/) |
 | 2   | Add a mise task running check_preflight, lint_helmfile and deploy_prom_crds tasks | 2026-03-11 | 19723a8 | [2-add-a-mise-task-running-check-preflight-](./quick/2-add-a-mise-task-running-check-preflight-/) |
 | 3   | Create comprehensive markdown document covering Kubernetes monitoring stack       | 2026-03-12 | f1b2e2e | [3-cr-er-un-document-markdown-dans-docs-r-p-](./quick/3-cr-er-un-document-markdown-dans-docs-r-p-/) |
-| 4   | Fix verify-phase1.sh script - remove set -e and add error handling                 | 2026-03-12 | PENDING | [4-fix-verify-phase1-sh-script-remove-set-e](./quick/4-fix-verify-phase1-sh-script-remove-set-e/) |
+| 4   | Fix verify-phase1.sh script - remove set -e and add error handling                 | 2026-03-12 | f9f4848 | [4-fix-verify-phase1-sh-script-remove-set-e](./quick/4-fix-verify-phase1-sh-script-remove-set-e/) |
 
 
 ## Accumulated Context
@@ -160,7 +160,7 @@
 
 **Last Updated:** 2026-03-12
 
-**Last activity:** 2026-03-12 - Completed Plan 01-03: All Phase 1 verification tasks complete. All 5 success criteria verified: Prometheus collecting metrics, Grafana accessible on NodePort 30030, 27 dashboards available, Alertmanager with 34 rules, retention configured (3d/2GB), etcd monitoring disabled. Phase 1 COMPLETE. Ready for Phase 2.
+**Last activity:** 2026-03-12 - Completed quick task 4: Fixed verify-phase1.sh script - removed set -e to prevent premature exits on kubectl failures
 
 **Context Hash:** k8s-monitoring-quick-5phases-35reqs
 

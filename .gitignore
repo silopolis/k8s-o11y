@@ -1,14 +1,23 @@
+# Kubernetes and Talos configs (contain sensitive cluster info)
 /.kube
-/.env
-/.env.local
-/.env.enc
-/.env.yaml
-/.env.json
-/.env.toml
-/.env
 /.talos
+
+# Helm cache (auto-generated)
 /.helm/cache
 /.helm/data/plugins/helm-diff
+
+# Private keys (NEVER commit)
 *.key
 *.pub
 age.key
+
+# SOPS-encrypted files are SAFE to commit (they're encrypted)
+# The .env.json below is SOPS-encrypted with age and can be committed
+
+# Unencrypted .env files (for local overrides only, never commit)
+/.env
+/.env.local
+/.env.enc.decrypted
+/.env.yaml.decrypted
+/.env.json.decrypted
+/.env.toml.decrypted

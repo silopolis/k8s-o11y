@@ -115,12 +115,18 @@ done
 [tasks.lint_values_strict]
 description = "Strict lint of Phase 01-02 values with Helm schema validation"
 run = """
-echo "Validating kube-prometheus-stack values..."
-helm lint prometheus-community/kube-prometheus-stack \
+echo "Pulling kube-prometheus-stack chart for validation..."
+CHART_DIR=$(mktemp -d)
+helm pull prometheus-community/kube-prometheus-stack --untar --untardir "$CHART_DIR"
+echo "Validating values against chart schema..."
+helm lint "$CHART_DIR/kube-prometheus-stack" \
   --values values/kube-prometheus-stack.yaml \
   --values values/prometheus.yaml \
   --values values/grafana.yaml \
   --values values/alertmanager.yaml
+LINT_EXIT=$?
+rm -rf "$CHART_DIR"
+exit $LINT_EXIT
 """
 
 # Phase 01-02: Template/Validation Tasks

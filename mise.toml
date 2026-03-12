@@ -83,6 +83,17 @@ run = "npx markdownlint-cli2 '**/*.md' --fix"
 description = "Lint Helmfile configuration"
 run = "helmfile -f helmfile.yaml lint"
 
+[tasks.install_helm_plugins]
+description = "Install required Helm plugins (helm-diff)"
+run = """
+if ! helm plugin list | grep -q diff; then
+  echo "Installing helm-diff plugin..."
+  helm plugin install https://github.com/databus23/helm-diff --verify=false
+else
+  echo "helm-diff plugin already installed"
+fi
+"""
+
 [tasks.deploy_prom_crds]
 description = "Sync CRDs release via Helmfile"
 run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync"
@@ -168,7 +179,10 @@ run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync"
 
 [tasks.deploy_stack_diff]
 description = "Show diff before deploying stack"
-run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff"
+run = [
+  "mise run install_helm_plugins",
+  "helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff",
+]
 
 [tasks.deploy_stack_apply]
 description = "Apply stack with automatic confirmation"

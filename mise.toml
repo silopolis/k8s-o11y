@@ -57,238 +57,190 @@ HELM_DATA_HOME = "{{ env.PROJECT_ROOT }}/.helm/data"
 ## Deployment configuration
 KPS_DEPLOY_WAIT_TIMEOUT = "{{ env.KPS_DEPLOY_WAIT_TIMEOUT | default(value=120) }}"
 
-[tasks.secrets-age-init]
-description = "Initialize age encryption keys for SOPS"
-run = "./scripts/secrets-age-init.sh"
+# Secrets tasks
+[tasks."secrets:age-init"]
+file = ".mise/tasks/secrets/age-init"
 
-[tasks.secrets-init]
-description = "Create encrypted .env.enc file with placeholder secrets"
-run = "./scripts/secrets-init.sh"
+[tasks."secrets:init"]
+file = ".mise/tasks/secrets/init"
 
-# FIXME Runs in shell but not as task
-[tasks.secrets-edit]
-description = "Edit encrypted secrets file"
-run = "sops .env.yaml"
+[tasks."secrets:edit"]
+file = ".mise/tasks/secrets/edit"
 
-[tasks.cls_up]
-description = "Create Talos cluster using Docker"
-run = "talosctl cluster create docker --name \"$TALOS_CLUSTER_NAME\" --state \"$TALOS_STATE_DIR\" --workers $TALOS_WORKER_COUNT"
-quiet = true
+# Cluster tasks
+[tasks."cluster:up"]
+file = ".mise/tasks/cluster/up"
 
-[tasks.cls_destroy]
-description = "Destroy Talos cluster and remove context"
-run = [
-  "talosctl cluster destroy --name \"$TALOS_CLUSTER_NAME\"",
-  "yq -i 'del(.contexts[env(TALOS_CONTEXT)])' \"$TALOSCONFIG\" 2>/dev/null || true",
-]
-quiet = true
+[tasks."cluster:destroy"]
+file = ".mise/tasks/cluster/destroy"
 
-[tasks.ctx_list]
-description = "List all Talos contexts and show current"
-run = "talosctl config contexts"
-quiet = true
+[tasks."cluster:context:list"]
+file = ".mise/tasks/cluster/context/list"
 
-[tasks.ctx_set]
-description = "Set current Talos context"
-usage = "arg '<context>' help='Context name to switch to'"
-run = 'talosctl config context "${usage_context}"'
-quiet = true
+[tasks."cluster:context:set"]
+file = ".mise/tasks/cluster/context/set"
 
-[tasks.ctx_remove]
-description = "Remove a Talos context from config"
-usage = "arg '<context>' help='Context name to remove'"
-run = 'CONTEXT="${usage_context}" yq -i "del(.contexts[env(CONTEXT)])" "$TALOSCONFIG"'
-quiet = true
+[tasks."cluster:context:remove"]
+file = ".mise/tasks/cluster/context/remove"
 
-[tasks.check_preflight]
-description = "Run preflight checks before deployment"
-run = "./scripts/preflight.sh"
+# Check tasks
+[tasks."check:preflight"]
+file = ".mise/tasks/check/preflight"
 
-[tasks.lint_md]
-description = "Lint all markdown files"
-run = "npx markdownlint-cli2 '**/*.md'"
+[tasks."check:validate-stack"]
+file = ".mise/tasks/check/validate-stack"
 
-[tasks.lint_md_fix]
-description = "Lint and auto-fix markdown files"
-run = "npx markdownlint-cli2 '**/*.md' --fix"
+# Lint tasks
+[tasks."lint:md"]
+file = ".mise/tasks/lint/md"
 
-[tasks.lint_helmfile]
-description = "Lint Helmfile configuration"
-run = "helmfile -f helmfile.yaml lint"
+[tasks."lint:md-fix"]
+file = ".mise/tasks/lint/md-fix"
 
-[tasks.install_helm_plugins]
-description = "Install required Helm plugins (helm-diff)"
-run = """
-if ! helm plugin list | grep -q diff; then
-  echo "Installing helm-diff plugin..."
-  helm plugin install https://github.com/databus23/helm-diff --verify=false
-else
-  echo "helm-diff plugin already installed"
-fi
-"""
+[tasks."lint:helmfile"]
+file = ".mise/tasks/lint/helmfile"
 
-[tasks.deploy_prom_crds]
-description = "Sync CRDs release via Helmfile"
-run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync"
+[tasks."lint:values"]
+file = ".mise/tasks/lint/values"
 
-[tasks.deploy_phase1]
-description = "Run complete Phase 1 deployment workflow (preflight → lint → deploy CRDs)"
-run = [
-  "echo '=== Phase 1: Running preflight checks ==='",
-  "mise run check_preflight",
-  "echo ''",
-  "echo '=== Phase 1: Linting Helmfile ==='",
-  "mise run lint_helmfile",
-  "echo ''",
-  "echo '=== Phase 1: Deploying Prometheus CRDs ==='",
-  "mise run deploy_prom_crds",
-  "echo ''",
-  "echo '=== Phase 1 deployment complete ==='",
-]
+[tasks."lint:values-strict"]
+file = ".mise/tasks/lint/values-strict"
 
-# Phase 01-02: Lint Tasks
-[tasks.lint_values]
-description = "Lint all Phase 01-02 values YAML files"
-run = """
-for file in values/kube-prometheus-stack.yaml values/prometheus.yaml values/grafana.yaml values/alertmanager.yaml; do
-  echo "Linting $file..."
-  yq eval '.' "$file" > /dev/null && echo "  ✓ Valid YAML"
-done
-"""
+[tasks."lint:template"]
+file = ".mise/tasks/lint/template"
 
-[tasks.lint_values_strict]
-description = "Strict lint of Phase 01-02 values with Helm schema validation"
-run = """
-echo "Pulling kube-prometheus-stack chart for validation..."
-CHART_DIR=$(mktemp -d)
-helm pull prometheus-community/kube-prometheus-stack --untar --untardir "$CHART_DIR"
-echo "Validating values against chart schema..."
-helm lint "$CHART_DIR/kube-prometheus-stack" \
-  --values values/kube-prometheus-stack.yaml \
-  --values values/prometheus.yaml \
-  --values values/grafana.yaml \
-  --values values/alertmanager.yaml
-LINT_EXIT=$?
-rm -rf "$CHART_DIR"
-exit $LINT_EXIT
-"""
+# Install tasks
+[tasks."install:helm-plugins"]
+file = ".mise/tasks/install/helm-plugins"
 
-# Phase 01-02: Template/Validation Tasks
-[tasks.template_stack]
-description = "Template kube-prometheus-stack without deploying"
-run = """
-TEMPLATE_FILE=$(mktemp -t stack-template-XXXXXX.yaml)
-helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > "$TEMPLATE_FILE"
-echo "Template written to: $TEMPLATE_FILE"
-echo "Lines: $(wc -l < $TEMPLATE_FILE)"
-"""
+# Template tasks
+[tasks."template:stack"]
+file = ".mise/tasks/template/stack"
 
-[tasks.lint_template]
-description = "Lint the templated YAML for syntax errors"
-run = """
-TEMPLATE_FILE=$(mktemp -t stack-template-XXXXXX.yaml)
-echo "Generating template..."
-helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > "$TEMPLATE_FILE"
-echo "Linting template: $TEMPLATE_FILE"
-echo "Documents: $(yq eval 'documentIndex' "$TEMPLATE_FILE" 2>/dev/null | tail -1)"
-echo "Validating YAML syntax..."
-yq eval '.' "$TEMPLATE_FILE" > /dev/null && echo "✓ Template is valid YAML"
-rm -f "$TEMPLATE_FILE"
-"""
+# Deploy tasks
+[tasks."deploy:prom-crds"]
+file = ".mise/tasks/deploy/prom-crds"
 
-[tasks.validate_stack]
-description = "Validate stack configuration (lint + template check)"
-run = [
-  "mise run lint_helmfile",
-  "mise run lint_values",
-  "mise run template_stack",
-  "mise run lint_template",
-]
+[tasks."deploy:phase1"]
+file = ".mise/tasks/deploy/phase1"
 
-# Phase 01-02: Deployment Tasks
 [tasks."deploy:stack"]
-description = "Complete Phase 01-02 deployment workflow: validate → deploy → wait → verify"
 file = ".mise/tasks/deploy/stack"
 
-[tasks.deploy_stack_quick]
-description = "Deploy main kube-prometheus-stack only (CRDs must exist)"
-run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync"
+[tasks."deploy:stack-quick"]
+file = ".mise/tasks/deploy/stack-quick"
 
-[tasks.deploy_stack_diff]
-description = "Show diff before deploying stack"
-run = """
-# Check and install helm-diff plugin if needed
-if ! helm plugin list | grep -q diff; then
-  echo "helm-diff plugin not found, installing..."
-  mise run install_helm_plugins
-else
-  echo "helm-diff plugin already installed ✓"
-fi
+[tasks."deploy:stack-diff"]
+file = ".mise/tasks/deploy/stack-diff"
 
-# Run helmfile diff
-echo ""
-echo "Comparing current state with desired state..."
-helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff
-"""
+[tasks."deploy:stack-apply"]
+file = ".mise/tasks/deploy/stack-apply"
 
-[tasks.deploy_stack_apply]
-description = "Apply stack with automatic confirmation"
-run = "helmfile -f helmfile.yaml -l name=kube-prometheus-stack apply"
-
-# Wave 1 Verification Task
+# Verify tasks
 [tasks."verify:wave1"]
-description = "Verify Wave 1 infrastructure foundation is complete"
 file = ".mise/tasks/verify/wave1"
 
-# Phase 01-02: Verification Tasks
+[tasks."verify:stack"]
+file = ".mise/tasks/verify/stack"
+
+[tasks."verify:retention"]
+file = ".mise/tasks/verify/retention"
+
+[tasks."verify:grafana"]
+file = ".mise/tasks/verify/grafana"
+
+[tasks."verify:prometheus"]
+file = ".mise/tasks/verify/prometheus"
+
+[tasks."verify:alertmanager"]
+file = ".mise/tasks/verify/alertmanager"
+
+# Legacy compatibility aliases (for backward compatibility)
+[tasks.secrets-age-init]
+depends = ["secrets:age-init"]
+
+[tasks.secrets-init]
+depends = ["secrets:init"]
+
+[tasks.secrets-edit]
+depends = ["secrets:edit"]
+
+[tasks.cls_up]
+depends = ["cluster:up"]
+
+[tasks.cls_destroy]
+depends = ["cluster:destroy"]
+
+[tasks.ctx_list]
+depends = ["cluster:context:list"]
+
+[tasks.ctx_set]
+depends = ["cluster:context:set"]
+
+[tasks.ctx_remove]
+depends = ["cluster:context:remove"]
+
+[tasks.check_preflight]
+depends = ["check:preflight"]
+
+[tasks.lint_md]
+depends = ["lint:md"]
+
+[tasks.lint_md_fix]
+depends = ["lint:md-fix"]
+
+[tasks.lint_helmfile]
+depends = ["lint:helmfile"]
+
+[tasks.lint_values]
+depends = ["lint:values"]
+
+[tasks.lint_values_strict]
+depends = ["lint:values-strict"]
+
+[tasks.lint_template]
+depends = ["lint:template"]
+
+[tasks.validate_stack]
+depends = ["check:validate-stack"]
+
+[tasks.template_stack]
+depends = ["template:stack"]
+
+[tasks.install_helm_plugins]
+depends = ["install:helm-plugins"]
+
+[tasks.deploy_prom_crds]
+depends = ["deploy:prom-crds"]
+
+[tasks.deploy_phase1]
+depends = ["deploy:phase1"]
+
+[tasks.deploy_stack_quick]
+depends = ["deploy:stack-quick"]
+
+[tasks.deploy_stack_diff]
+depends = ["deploy:stack-diff"]
+
+[tasks.deploy_stack_apply]
+depends = ["deploy:stack-apply"]
+
 [tasks.verify_stack]
-description = "Verify Phase 01-02 deployment is healthy"
-run = """
-echo "=== Checking pods ==="
-kubectl get pods -n monitoring
-echo ""
-echo "=== Checking services ==="
-kubectl get svc -n monitoring
-"""
+depends = ["verify:stack"]
 
 [tasks.verify_retention]
-description = "Verify Prometheus retention configuration"
-run = """
-echo "Checking Prometheus retention..."
-RETENTION=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.retention}' 2>/dev/null)
-if [ -n "$RETENTION" ]; then
-  echo "Retention: $RETENTION"
-else
-  echo "Retention not configured via Prometheus CR"
-fi
-"""
+depends = ["verify:retention"]
 
 [tasks.verify_grafana]
-description = "Verify Grafana NodePort is accessible"
-run = """
-echo "Grafana service:"
-kubectl get svc kube-prometheus-stack-grafana -n monitoring
-echo ""
-NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-echo "Access URL: http://${NODE_IP}:30030"
-echo "Get admin password: kubectl get secret kube-prometheus-stack-grafana -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d"
-"""
+depends = ["verify:grafana"]
 
 [tasks.verify_prometheus]
-description = "Verify Prometheus is collecting metrics"
-run = "./scripts/verify-prometheus.sh"
+depends = ["verify:prometheus"]
 
 [tasks.verify_alertmanager]
-description = "Verify Alertmanager is operational"
-run = """
-echo "Checking Alertmanager status..."
-OPERATOR_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=kube-prometheus-stack-prometheus-operator -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n monitoring "$OPERATOR_POD" -- \
-  wget -qO- http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093/api/v2/status 2>/dev/null | \
-  jq '.cluster.status' 2>/dev/null || echo "Alertmanager check requires jq or wget"
-"""
+depends = ["verify:alertmanager"]
 
-# Lint Tasks
+# Utility tasks
 [tasks."lint:all"]
 description = "Run all linting checks (markdownlint + shellcheck)"
 file = ".mise/tasks/lint/all"

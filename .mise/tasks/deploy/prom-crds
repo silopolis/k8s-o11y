@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Sync CRDs release via Helmfile"
+
+set -e
+
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync

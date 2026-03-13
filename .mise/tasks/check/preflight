@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Run preflight checks before deployment"
+
+set -e
+
+./scripts/preflight.sh

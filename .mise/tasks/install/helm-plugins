@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# [MISE] description="Install required Helm plugins (helm-diff)"
+
+set -e
+
+if ! helm plugin list | grep -q diff; then
+  echo "Installing helm-diff plugin..."
+  helm plugin install https://github.com/databus23/helm-diff --verify=false
+else
+  echo "helm-diff plugin already installed"
+fi

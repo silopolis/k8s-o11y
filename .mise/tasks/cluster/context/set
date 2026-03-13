@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# [MISE] description="Set current Talos context"
+# [MISE] quiet = true
+
+set -e
+
+if [ -z "$1" ]; then
+  echo "Usage: mise run cluster:context:set <context-name>"
+  echo ""
+  echo "Available contexts:"
+  talosctl config contexts
+  exit 1
+fi
+
+talosctl config context "$1"

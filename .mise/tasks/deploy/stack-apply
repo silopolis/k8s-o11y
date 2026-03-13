@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Apply stack with automatic confirmation"
+
+set -e
+
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack apply

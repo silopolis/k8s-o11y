@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# [MISE] description="Validate stack configuration (lint + template check)"
+# [MISE] depends = ["lint:helmfile", "lint:values", "template:stack", "lint:template"]
+
+set -e
+
+echo "=== Running Helmfile lint ==="
+mise run lint:helmfile
+echo ""
+echo "=== Running values lint ==="
+mise run lint:values
+echo ""
+echo "=== Running stack template ==="
+mise run template:stack
+echo ""
+echo "=== Running template lint ==="
+mise run lint:template
+echo ""
+echo "=== Stack validation complete ==="

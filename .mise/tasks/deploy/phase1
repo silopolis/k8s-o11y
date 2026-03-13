@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# [MISE] description="Run complete Phase 1 deployment workflow (preflight → lint → deploy CRDs)"
+
+set -e
+
+echo '=== Phase 1: Running preflight checks ==='
+mise run check:preflight
+echo ''
+echo '=== Phase 1: Linting Helmfile ==='
+mise run lint:helmfile
+echo ''
+echo '=== Phase 1: Deploying Prometheus CRDs ==='
+mise run deploy:prom-crds
+echo ''
+echo '=== Phase 1 deployment complete ==='

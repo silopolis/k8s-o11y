@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# [MISE] description="Lint all Phase 01-02 values YAML files"
+
+set -e
+
+for file in values/kube-prometheus-stack.yaml values/prometheus.yaml values/grafana.yaml values/alertmanager.yaml; do
+  echo "Linting $file..."
+  yq eval '.' "$file" > /dev/null && echo "  ✓ Valid YAML"
+done

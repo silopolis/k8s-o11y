@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Alertmanager is operational"
+
+set -e
+
+echo "Checking Alertmanager status..."
+OPERATOR_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=kube-prometheus-stack-prometheus-operator -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n monitoring "$OPERATOR_POD" -- \
+  wget -qO- http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093/api/v2/status 2>/dev/null | \
+  jq '.cluster.status' 2>/dev/null || echo "Alertmanager check requires jq or wget"

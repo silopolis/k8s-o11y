@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# [MISE] description="Destroy Talos cluster and remove context"
+# [MISE] quiet = true
+
+set -e
+
+talosctl cluster destroy --name "$TALOS_CLUSTER_NAME"
+yq -i 'del(.contexts[env(TALOS_CONTEXT)])' "$TALOSCONFIG" 2>/dev/null || true

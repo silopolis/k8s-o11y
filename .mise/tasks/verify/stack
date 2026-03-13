@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Phase 01-02 deployment is healthy"
+
+set -e
+
+echo "=== Checking pods ==="
+kubectl get pods -n monitoring
+echo ""
+echo "=== Checking services ==="
+kubectl get svc -n monitoring

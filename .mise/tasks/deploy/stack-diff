@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# [MISE] description="Show diff before deploying stack"
+
+set -e
+
+# Check and install helm-diff plugin if needed
+if ! helm plugin list | grep -q diff; then
+  echo "helm-diff plugin not found, installing..."
+  mise run install:helm-plugins
+else
+  echo "helm-diff plugin already installed ✓"
+fi
+
+# Run helmfile diff
+echo ""
+echo "Comparing current state with desired state..."
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack diff

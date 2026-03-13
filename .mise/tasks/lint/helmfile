@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Lint Helmfile configuration"
+
+set -e
+
+helmfile -f helmfile.yaml lint

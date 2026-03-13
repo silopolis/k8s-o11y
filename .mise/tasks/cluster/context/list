@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# [MISE] description="List all Talos contexts and show current"
+# [MISE] quiet = true
+
+set -e
+
+talosctl config contexts

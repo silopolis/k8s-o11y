@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# [MISE] description="Create Talos cluster using Docker"
+# [MISE] quiet = true
+
+set -e
+
+talosctl cluster create docker --name "$TALOS_CLUSTER_NAME" --state "$TALOS_STATE_DIR" --workers $TALOS_WORKER_COUNT

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Deploy main kube-prometheus-stack only (CRDs must exist)"
+
+set -e
+
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack sync

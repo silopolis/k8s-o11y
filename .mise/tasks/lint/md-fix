@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Lint and auto-fix markdown files"
+
+set -e
+
+npx markdownlint-cli2 '**/*.md' --fix

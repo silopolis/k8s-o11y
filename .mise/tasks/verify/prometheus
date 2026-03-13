@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Prometheus is collecting metrics"
+
+set -e
+
+./scripts/verify-prometheus.sh

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Prometheus retention configuration"
+
+set -e
+
+echo "Checking Prometheus retention..."
+RETENTION=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.retention}' 2>/dev/null)
+if [ -n "$RETENTION" ]; then
+  echo "Retention: $RETENTION"
+else
+  echo "Retention not configured via Prometheus CR"
+fi

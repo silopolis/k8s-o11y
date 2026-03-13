@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# [MISE] description="Remove a Talos context from config"
+# [MISE] quiet = true
+
+set -e
+
+if [ -z "$1" ]; then
+  echo "Usage: mise run cluster:context:remove <context-name>"
+  echo ""
+  echo "Current contexts:"
+  talosctl config contexts
+  exit 1
+fi
+
+CONTEXT="$1" yq -i "del(.contexts[env(CONTEXT)])" "$TALOSCONFIG"
+echo "Removed context: $1"

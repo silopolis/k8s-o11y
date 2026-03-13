@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# [MISE] description="Lint the templated YAML for syntax errors"
+
+set -e
+
+TEMPLATE_FILE=$(mktemp -t stack-template-XXXXXX.yaml)
+echo "Generating template..."
+helmfile -f helmfile.yaml -l name=kube-prometheus-stack template > "$TEMPLATE_FILE"
+echo "Linting template: $TEMPLATE_FILE"
+echo "Documents: $(yq eval 'documentIndex' "$TEMPLATE_FILE" 2>/dev/null | tail -1)"
+echo "Validating YAML syntax..."
+yq eval '.' "$TEMPLATE_FILE" > /dev/null && echo "✓ Template is valid YAML"
+rm -f "$TEMPLATE_FILE"

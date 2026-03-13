@@ -38,6 +38,7 @@
 | Phase 01 P03 | 15m | 7 tasks | 3 files |
 | Phase 01.1-clear-pending-todos-extend-deepen-mise-features-usage-refactor-improve-and-extend-libs-and-scripts P01 | 27m | 8 tasks | 11 files |
 | Phase quick P8 | 30s | 1 tasks | 1 files |
+| Phase quick P9 | 8m | 2 tasks | 29 files |
 
 ## Decisions Log
 
@@ -93,6 +94,7 @@
 | 6   | Create condensed Phase 1 summary document                                          | 2026-03-12 | 5eb2882 | [6-write-condensed-summary-of-phase-1-work-](./quick/6-write-condensed-summary-of-phase-1-work-/) |
 | 7   | Add 'check', 'cluster', 'secrets', 'install', 'template' directories to .mise/tasks/ | 2026-03-13 | 712befd | [7-add-check-cluster-secrets-install-templa](./quick/7-add-check-cluster-secrets-install-templa/) |
 | 8   | Add 'cluster/context' directory to .mise/tasks/                                   | 2026-03-13 | 02a1135 | [8-add-cluster-context-directory-to-mise-ta](./quick/8-add-cluster-context-directory-to-mise-ta/) |
+| 9   | Refactor all 28 mise inline tasks into file tasks in .mise/tasks/ directory        | 2026-03-13 | 6f991a5 | [9-refactor-all-mise-inline-tasks-into-file](./quick/9-refactor-all-mise-inline-tasks-into-file/) |
 
 
 ## Accumulated Context
@@ -106,7 +108,7 @@
 ### Pending Todos
 
 - [Use mise secrets management features for sensitive data](.planning/todos/pending/2026-03-12-use-mise-secrets-management-features-for-sensitive-data.md) — tooling — Integrate mise secrets management (1Password/Vault/sops) for API keys, credentials, and sensitive configuration.
-- [Refactor mise tasks to use directory tree in .mise/tasks/](.planning/todos/pending/2026-03-12-refactor-mise-tasks-to-use-directory-tree-in-mise-tasks.md) — tooling — Migrate inline mise.toml tasks to individual executable files in .mise/tasks/ directory structure.
+- [Refactor mise tasks to use directory tree in .mise/tasks/](.planning/todos/done/2026-03-12-refactor-mise-tasks-to-use-directory-tree-in-mise-tasks.md) — tooling — COMPLETED 2026-03-13: Migrated 28 inline tasks to executable files with colon namespacing.
 - [Add proper project main README.md file](.planning/todos/pending/2026-03-12-add-proper-project-main-readme-md-file.md) — docs — Create comprehensive README.md at repository root with project overview, quick start, and documentation links.
 - [Fix Talos control plane metrics exposition](.planning/todos/pending/2026-03-12-fix-talos-control-plane-metrics-exposition.md) — tooling — Review and fix issues with the completed Talos control plane metrics configuration.
 - [Add markdownlint-cli to mise tools and pre-commit checking](.planning/todos/pending/2026-03-12-add-markdownlint-cli-to-mise-tools-and-pre-commit-checking.md) — tooling — Add markdownlint-cli2 as a mise tool and create lint task for markdown files.
@@ -178,7 +180,7 @@
 
 **Last Updated:** 2026-03-13
 
-**Last activity:** 2026-03-13 - Completed quick task 8: Add 'cluster/context' directory to .mise/tasks/
+**Last activity:** 2026-03-13 - Completed quick task 9: Refactored all 28 mise inline tasks into file tasks
 
 **Context Hash:** k8s-monitoring-quick-5phases-35reqs
 

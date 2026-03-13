@@ -1,0 +1,159 @@
+# Pre-commit hooks configuration
+# Uses mise exec pattern to ensure version consistency with mise.toml
+
+exclude: |
+  (?x)^(
+      \.git/
+    | \.hg/
+    | \.svn/
+    | \.venv/
+    | \.direnv/
+    | \.mypy_cache/
+    | \.pytest_cache/
+    | \.ruff_cache/
+    | node_modules/
+    | dist/
+    | build/
+    | _build/
+    | site/
+    | docs/_build/
+    | docs/_site/
+    | vendor/
+    | tmp/
+    | \.terraform/
+    | \.talos/
+    | \.helm/cache/
+    | \.helm/data/
+    | \.quarto/
+  )
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      # Trailing whitespace - auto-fix then pass
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: \.(svg)$
+        # language: system
+        # types: [file]
+        stages: [pre-commit]
+
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+
+      # End of file fixer - auto-fix then pass
+      - id: end-of-file-fixer
+        name: Fix end of files
+        exclude: \.(svg|png|jpg|jpeg|gif|webp|ico)$
+        # language: system
+        # types: [file]
+        stages: [pre-commit]
+
+      # YAML validation - FAIL on errors
+      - id: check-yaml
+        name: Check YAML syntax
+        args: [--unsafe]
+        # language: system
+        files: \.(yaml|yml)$
+        exclude: |
+          (?x)^(
+              charts/.*/templates/.*\.ya?ml
+            | .*\.gotmpl
+          )$
+        stages: [pre-commit]
+
+      # JSON validation - FAIL on errors
+      - id: check-json
+        name: Check JSON syntax
+        # language: system
+        files: \.json$
+        stages: [pre-commit]
+
+      # # TOML validation - FAIL on errors
+      - id: check-toml
+        name: Check TOML syntax
+
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+
+      # Secret detection - FAIL if secrets found
+      - id: detect-secrets
+        name: Detect potential secrets
+        entry: mise exec -- detect-secrets
+        language: system
+        types: [file]
+        stages: [pre-commit]
+
+  # - repo: local
+  #   hooks:
+  #   # Markdown linting - WARN only (don't block)
+  #   - id: markdownlint
+  #     name: Markdown linting
+  #     entry: mise exec -- markdownlint-cli2
+  #     language: system
+  #     files: \.md$
+  #     exclude: |
+  #       (?x)^(
+  #           .planning/
+  #         | .sessions/
+  #       )
+  #     stages: [pre-commit]
+  #     verbose: true
+  #   # Shellcheck - FAIL on errors (block commit)
+  #   - id: shellcheck
+  #     name: Shell script linting
+  #     entry: mise exec -- shellcheck
+  #     language: system
+  #     files: \.sh$
+  #     stages: [pre-commit]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.21.0
+    hooks:
+      - id: markdownlint-cli2
+        args: ["--config", ".markdownlint-cli2.yaml"]
+        files: \.(md|mdx)$
+        exclude: |
+          (?x)^(
+              \.planning/
+            | \.sessions/
+            | \._build/
+            | \.vendor/
+          )
+        verbose: true
+
+      - id: markdownlint-cli2
+        name: markdownlint-cli2 (Quarto)
+        files: \.qmd$
+        args: ["--config", ".markdownlint-cli2-quarto.yaml"]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        files: \.(yaml|yml)$
+        args: ["-c", ".yamllint.yaml"]
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        name: Shell script linting
+        files: \.(sh|bash)$
+        args: ["--severity=style"]
+
+  # - repo: local
+  #   hooks:
+  #     - id: prettier-quarto-yaml
+  #       name: prettier quarto front matter
+  #       entry: bash -c 'prettier --check "$@"' --
+  #       language: system
+  #       files: \.(md|qmd|yml|yaml)$
+  #       exclude: ^(\.venv/|site/|docs/_build/|docs/_site/)

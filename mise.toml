@@ -23,6 +23,7 @@ _.file = [
 ]
 _.source = ".envrc"
 ## Project global variables
+ORGANIZATION = "{{ env.ORGANIZATION | default(value='ACME') }}"
 PROJECT_NAME = "{{ env.PROJECT_NAME | default(value=config_root | basename) }}"
 PROJECT_ROOT = "{{config_root}}"
 ## Encryption and secrets

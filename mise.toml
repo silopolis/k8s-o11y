@@ -13,6 +13,8 @@ markdownlint-cli2 = "latest"
 pre-commit = "latest"
 shellcheck = "latest"
 sops = "latest"
+prettier = "latest"
+yamllint = "latest"
 
 [env]
 ## User overrides

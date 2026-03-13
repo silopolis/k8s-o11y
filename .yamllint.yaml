@@ -1,0 +1,35 @@
+extends: default
+
+ignore: |
+  site/
+  _site/
+  build/
+  _build/
+  docs/_build/
+  docs/_site/
+  node_modules/
+  vendor/
+  .terraform/
+  .git/
+  .helm/cache/
+  .helm/data/
+  .planning/
+  .sessions/
+  .env.yaml
+
+rules:
+  document-start: disable
+  line-length: disable
+  truthy:
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  hyphens:
+    max-spaces-after: 1
+  braces:
+    max-spaces-inside: 1
+  brackets:
+    max-spaces-inside: 1

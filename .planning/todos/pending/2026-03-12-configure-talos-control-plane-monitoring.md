@@ -32,10 +32,10 @@ Update Prometheus configuration to scrape control plane components via node IPs:
    ```yaml
    kubeControllerManager:
      enabled: false  # Disable default ServiceMonitor
-   
+
    kubeScheduler:
      enabled: false  # Disable default ServiceMonitor
-   
+
    kubeProxy:
      enabled: false  # Disable default ServiceMonitor
    ```
@@ -65,7 +65,7 @@ Update Prometheus configuration to scrape control plane components via node IPs:
            tls_config:
              insecure_skip_verify: true
            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-           
+
          # Scheduler
          - job_name: 'talos-scheduler'
            kubernetes_sd_configs:
@@ -85,7 +85,7 @@ Update Prometheus configuration to scrape control plane components via node IPs:
            tls_config:
              insecure_skip_verify: true
            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-           
+
          # Kube Proxy
          - job_name: 'talos-kube-proxy'
            kubernetes_sd_configs:
@@ -143,4 +143,3 @@ kubectl exec -it prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -- 
 - kube-prometheus-stack documentation: additionalScrapeConfigs
 - Prometheus documentation: relabel_configs and kubernetes_sd_configs
 - Related todo: Configure Talos to expose control plane metrics
-

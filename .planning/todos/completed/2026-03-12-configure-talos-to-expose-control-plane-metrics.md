@@ -22,7 +22,7 @@ Talos Linux runs control plane components as host services (systemd/static pods)
 **Talos-Specific Challenge:**
 Unlike standard Kubernetes distributions (kubeadm, kOps), Talos:
 1. Doesn't expose controller-manager metrics on :10257 by default
-2. Doesn't expose scheduler metrics on :10259 by default  
+2. Doesn't expose scheduler metrics on :10259 by default
 3. Doesn't expose kube-proxy metrics on :10249 by default
 4. Runs components as host services outside the cluster network
 
@@ -62,7 +62,7 @@ Configure Talos machine configuration to enable control plane metrics exposure:
    ```bash
    # For each control plane node
    talosctl -n <node-ip> edit mc
-   
+
    # Or apply via patch
    talosctl -n <node-ip> patch mc --patch @control-plane-metrics.yaml
    ```

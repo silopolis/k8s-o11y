@@ -126,4 +126,3 @@ docs/
 ## Next Steps
 
 The documentation is ready for reference during the Phase 1 (Core Observability Stack) deployment activities. The Helmfile and values examples can be used as templates for actual deployment.
-

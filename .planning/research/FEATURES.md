@@ -1,7 +1,7 @@
 # Feature Landscape: Kubernetes Monitoring
 
-**Domain:** Kubernetes observability with Prometheus/Grafana/Loki stack  
-**Researched:** 2026-03-11  
+**Domain:** Kubernetes observability with Prometheus/Grafana/Loki stack
+**Researched:** 2026-03-11
 **Confidence:** HIGH (verified with official docs and 2025-2026 sources)
 
 
@@ -197,6 +197,6 @@ Based on dependency graph and official documentation:
 - [10 Essential Metrics for Kubernetes Monitoring](https://www.metricfire.com/blog/10-essential-metrics-for-kubernetes-monitoring/) — Core monitoring requirements
 
 ---
-*Feature research for: Kubernetes Monitoring Training Project*  
-*Researched: 2026-03-11*  
+*Feature research for: Kubernetes Monitoring Training Project*
+*Researched: 2026-03-11*
 *Confidence: HIGH — Verified against official kube-prometheus-stack documentation and current (2026) implementation guides*

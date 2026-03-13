@@ -130,7 +130,7 @@ set -e
 
 **Before:** 294 lines with 28 inline `[tasks.X]` sections containing `run =` commands
 
-**After:** 
+**After:**
 - 31 file task references using colon namespacing (`[tasks."category:task"]`)
 - 28 backward-compatible alias tasks (`[tasks.old_name]` with `depends = ["category:task"]`)
 - 136 insertions(+), 184 deletions(-) — net reduction of 48 lines

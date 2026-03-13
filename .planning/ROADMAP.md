@@ -1,8 +1,8 @@
 # Project Roadmap: Kubernetes Monitoring Environment
 
-**Project:** Enable infrastructure teams to monitor cluster health, service performance, and application traffic in real-time with automated alerting.  
-**Depth:** Quick (5 phases, 2-day deadline)  
-**Coverage:** 35/35 v1 requirements mapped ✓  
+**Project:** Enable infrastructure teams to monitor cluster health, service performance, and application traffic in real-time with automated alerting.
+**Depth:** Quick (5 phases, 2-day deadline)
+**Coverage:** 35/35 v1 requirements mapped ✓
 
 
 ## Phases
@@ -173,13 +173,13 @@ Phase 1 ────────────────────────
 
 Based on research, these phases have known pitfalls:
 
-**Phase 1:** Prometheus storage misconfiguration on single-node Docker — use emptyDir with retention limits  
-**Phase 2:** ServiceMonitor label selector mismatch — MUST include `release: kube-prometheus-stack` label  
-**Phase 3:** prometheus-adapter custom metrics API registration — verify `seriesQuery` matches Prometheus exactly  
-**Phase 3:** Loki retention requires compactor enabled — `retention_enabled: true` not just `retention_period`  
-**Phase 4:** Alertmanager routing test strategy — plan tests when training app can generate load/errors  
+**Phase 1:** Prometheus storage misconfiguration on single-node Docker — use emptyDir with retention limits
+**Phase 2:** ServiceMonitor label selector mismatch — MUST include `release: kube-prometheus-stack` label
+**Phase 3:** prometheus-adapter custom metrics API registration — verify `seriesQuery` matches Prometheus exactly
+**Phase 3:** Loki retention requires compactor enabled — `retention_enabled: true` not just `retention_period`
+**Phase 4:** Alertmanager routing test strategy — plan tests when training app can generate load/errors
 
 
 ---
-*Roadmap created: 2025-03-11*  
+*Roadmap created: 2025-03-11*
 *Ready for planning: yes*

@@ -62,7 +62,7 @@ Existing directories in .mise/tasks/:
     3. .mise/tasks/secrets/ - for secrets management tasks (API keys, credentials)
     4. .mise/tasks/install/ - for installation tasks (CRDs, helm charts, etc.)
     5. .mise/tasks/template/ - for template generation tasks
-    
+
     Ensure consistent structure with existing directories (deploy/, lint/, utils/, verify/). Create directories as empty folders - task scripts will be added separately.
   </action>
   <verify>ls -la .mise/tasks/ | grep -E "^d.*check$|^d.*cluster$|^d.*secrets$|^d.*install$|^d.*template$"</verify>

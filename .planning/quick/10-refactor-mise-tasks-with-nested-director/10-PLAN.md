@@ -191,7 +191,7 @@ Verify symlinks are correct by checking they resolve to executable files.
 - Directory structure follows nested convention: category/subcategory/task
 - Default symlinks exist: cluster:context, lint:markdown, deploy:stack:kps
 - Running `mise run cluster:context` executes list task
-- Running `mise run lint:markdown` executes all task  
+- Running `mise run lint:markdown` executes all task
 - Running `mise run deploy:stack:kps` executes quick task
 </success_criteria>
 

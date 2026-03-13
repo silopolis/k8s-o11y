@@ -1,7 +1,7 @@
 # Quick Task 1 Summary: Add mise tasks for Phase 1 operations
 
-**Date:** 2026-03-11  
-**Commit:** 0cc0cf1  
+**Date:** 2026-03-11
+**Commit:** 0cc0cf1
 **Description:** Add mise tasks for phase one operations (preflight check, linting, deployment, etc.)
 
 ## Completed Work
@@ -14,16 +14,16 @@
 **Tasks Added:**
 1. **preflight** — Run preflight checks before deployment
    - Command: `./scripts/preflight.sh`
-   
+
 2. **lint** — Lint all markdown files
    - Command: `npx markdownlint-cli2 '**/*.md'`
-   
+
 3. **lint-fix** — Lint and auto-fix markdown files
    - Command: `npx markdownlint-cli2 '**/*.md' --fix`
-   
+
 4. **sync-crds** — Sync CRDs release via Helmfile
    - Command: `helmfile -f helmfile.yaml -l name=kube-prometheus-stack-crds sync`
-   
+
 5. **lint-helmfile** — Lint Helmfile configuration
    - Command: `helmfile -f helmfile.yaml lint`
 

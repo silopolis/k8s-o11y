@@ -115,7 +115,7 @@ releases:
     namespace: traefik
     chart: oci://ghcr.io/traefik-charts/gateway-api-crds
     version: 1.0.0
-    
+
   - name: traefik
     namespace: traefik
     needs: [traefik/gateway-api-crds]  # Helmfile dependency
@@ -199,14 +199,14 @@ Loki retention only works with specific storage engines (boltdb-shipper or tsdb)
 loki:
   limits_config:
     retention_period: 168h  # 7 days - this alone doesn't delete anything!
-  
+
   compactor:
     retention_enabled: true  # REQUIRED for deletion to work
     retention_delete_delay: 2h
     compaction_interval: 10m
     working_directory: /var/loki/compactor
     shared_store: filesystem
-  
+
   # For single node, use filesystem storage
   storage:
     type: filesystem
@@ -246,24 +246,24 @@ releases:
   - name: traefik-crds
     namespace: traefik
     chart: traefik/gateway-api-crds
-    
+
   - name: traefik
     namespace: traefik
     needs: [traefik/traefik-crds]
-    
+
   # Phase 2: Monitoring stack
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
-    
+
   - name: loki
     namespace: monitoring
     needs: [monitoring/kube-prometheus-stack]
-    
+
   - name: prometheus-adapter
     namespace: monitoring
     needs: [monitoring/kube-prometheus-stack]  # Must have Prometheus first
-    
+
   # Phase 3: Applications
   - name: training-app
     namespace: default

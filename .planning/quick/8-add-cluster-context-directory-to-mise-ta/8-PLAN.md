@@ -41,11 +41,11 @@ Output: New directory `.mise/tasks/cluster/context/` with git tracking.
   <files>.mise/tasks/cluster/context/.gitkeep</files>
   <action>
     Create the `.mise/tasks/cluster/context/` directory with a `.gitkeep` file.
-    
+
     The .mise/tasks/ structure follows a tree pattern where related operations are grouped.
-    The `cluster/` directory already exists (contains only .gitkeep), and now needs a `context/` 
+    The `cluster/` directory already exists (contains only .gitkeep), and now needs a `context/`
     subdirectory for cluster context management tasks.
-    
+
     Create the directory and add a `.gitkeep` file to ensure git tracks the empty directory.
   </action>
   <verify>

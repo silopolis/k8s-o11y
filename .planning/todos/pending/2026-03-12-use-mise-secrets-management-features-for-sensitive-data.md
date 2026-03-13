@@ -46,11 +46,11 @@ Leverage mise's built-in secrets management capabilities (via 1Password, Vault, 
    ```toml
    [secrets]
    backend = "1password"  # or "vault", "sops"
-   
+
    # Define required secrets
    [secrets.GRAFANA_ADMIN_PASSWORD]
    key = "op://vault/item/field"
-   
+
    [secrets.ALERTMANAGER_SLACK_WEBHOOK]
    key = "op://vault/slack/webhook"
    ```

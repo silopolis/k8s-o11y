@@ -1,7 +1,7 @@
 # Requirements: Kubernetes Monitoring Environment
 
-**Defined:** 2025-03-11  
-**Core Value:** Enable infrastructure teams to monitor cluster health, service performance, and application traffic in real-time with automated alerting  
+**Defined:** 2025-03-11
+**Core Value:** Enable infrastructure teams to monitor cluster health, service performance, and application traffic in real-time with automated alerting
 **Organization:** `{{ .Values.organization }}` (configurable parameter)
 
 ## v1 Requirements
@@ -155,5 +155,5 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2025-03-11*  
+*Requirements defined: 2025-03-11*
 *Last updated: 2025-03-11 after initial definition*

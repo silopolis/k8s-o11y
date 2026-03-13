@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# [MISE] description="Lint all shell scripts with shellcheck"
+
+set -e
+
+# Source the lint library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../../../lib/lint.sh"
+
+# Run shellcheck on all shell scripts
+lint_shell

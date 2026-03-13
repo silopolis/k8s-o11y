@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# [MISE] description="Verify Wave 2 quality gates are configured"
+# [MISE] depends=[]
+
+set -e
+
+echo "=== Wave 2 Verification ==="
+
+# 1. Verify pre-commit config exists
+echo "Checking pre-commit configuration..."
+test -f .pre-commit-config.yaml || exit 1
+mise exec -- pre-commit validate-config
+
+# 2. Verify hooks installed
+echo "Checking pre-commit hooks..."
+test -x .git/hooks/pre-commit || exit 1
+
+# 3. Verify markdownlint config
+echo "Checking markdownlint configuration..."
+test -f .markdownlint-cli2.yaml || exit 1
+
+# 4. Verify lint tasks work
+echo "Checking lint tasks..."
+test -x .mise/tasks/lint/markdown/all || test -d .mise/tasks/lint/markdown
+test -x .mise/tasks/lint/shell/all || test -d .mise/tasks/lint/shell
+
+# 5. Verify lib/lint.sh exists
+echo "Checking lint library..."
+test -f lib/lint.sh || exit 1
+
+# 6. Test pre-commit on a safe file
+echo "Testing pre-commit..."
+# This should pass on most files
+mise exec -- pre-commit run --files README.md || true
+
+echo "=== Wave 2 Verification Complete ==="

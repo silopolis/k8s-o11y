@@ -54,7 +54,8 @@ verify_talos_metrics_endpoint() {
   local component=$3
 
   # Create a test pod with hostNetwork to access the endpoint
-  local pod_name="metrics-test-${port}-$(date +%s)"
+  local pod_name
+  pod_name="metrics-test-${port}-$(date +%s)"
 
   if kubectl run "$pod_name" --image=curlimages/curl:latest \
     --restart=Never --overrides='{"spec":{"hostNetwork":true}}' \

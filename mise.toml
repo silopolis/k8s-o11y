@@ -93,6 +93,12 @@ file = ".mise/tasks/check/preflight"
 file = ".mise/tasks/check/validate-stack"
 
 # Lint tasks
+[tasks."lint:markdown"]
+file = ".mise/tasks/lint/markdown"
+
+[tasks."lint:shell"]
+file = ".mise/tasks/lint/shell"
+
 [tasks."lint:md"]
 file = ".mise/tasks/lint/md"
 
@@ -156,6 +162,9 @@ file = ".mise/tasks/verify/prometheus"
 
 [tasks."verify:alertmanager"]
 file = ".mise/tasks/verify/alertmanager"
+
+[tasks."verify:wave2"]
+file = ".mise/tasks/verify/wave2"
 
 # Legacy compatibility aliases (for backward compatibility)
 [tasks.secrets-age-init]

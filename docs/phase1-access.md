@@ -1,7 +1,7 @@
 # Phase 1 Access Guide
 
-**Phase:** 1 - Core Observability Stack  
-**Version:** 2026-03-12  
+**Phase:** 1 - Core Observability Stack
+**Version:** 2026-03-12
 **Status:** Complete
 
 

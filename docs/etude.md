@@ -63,7 +63,7 @@
   - Vue globale limitée à ce qui est fédéré,
   - Bénéfique pour la scalabilité,
   - Contraignant pour certains diagnostics fins.
-- **Réplication** complète des séries entre serveurs via fédération est déconseillée.  
+- **Réplication** complète des séries entre serveurs via fédération est déconseillée.
   Surcharge les Prometheus source et cible en CPU, mémoire et réseau.
 - **Rétention** à long terme limitée par les capacités d’un seul nœud Prometheus pour chaque instance (locales et globale).
 - **Haute disponibilité** nécessite des mécanismes complémentaires (Prometheus redondants par DC + mécanisme de bascule ou d’équilibrage).
@@ -75,7 +75,7 @@
 - `DC02` : Prometheus DC02 avec le même rôle côté DC02.
 - Master : configure :
   - un job **`/federate`** avec cibles DC01 et DC02, et
-  - des **`match[]`** ne remontant que des *agrégats ou métriques clés*.  
+  - des **`match[]`** ne remontant que des *agrégats ou métriques clés*.
     Exemple : `job="*"` agrégé par service, client ou session de formation).
 
 Ce modèle couvre bien un besoin de monitoring centralisé pour une entreprise de formation tant que la volumétrie reste raisonnable et que la rétention à long terme n’est pas critique.
@@ -102,18 +102,18 @@ Les composants principaux sont :
   - Composant central
   - *Agrège les données* de multiples stores (sidecars, store‑gateways)
   - Fournit une *vue globale PromQL*.
-- **Store Gateway**  
+- **Store Gateway**
   Sert les données historiques à partir du stockage objet.
 - **Compactor**
   - Compacte, sous-échantillonne et déduplique les blocs dans le stockage objet,
   - Améliore les performances de requête et le coût de stockage.
-- **Ruler**  
+- **Ruler**
   Évalue des règles d’alerte ou d’enregistrement sur les données globales.
 
 
 ### Avantages
 
-- **Rétention virtuellement illimitée**  
+- **Rétention virtuellement illimitée**
   Les blocs Prometheus sont externalisés dans un stockage objet, permettant d’augmenter fortement la période de conservation et de réduire la pression sur les disques locaux.
 - **Haute disponibilité native**
   - Déploiement de plusieurs réplicas Prometheus par DC avec chacun un *sidecar*,
@@ -128,10 +128,10 @@ Les composants principaux sont :
 
 ### Limites et complexité
 
-- Nécessite un **\*stockage objet** accessible par tous les datacenters*  
+- Nécessite un **\*stockage objet** accessible par tous les datacenters*
   Implique des questions de *latence*, de *coûts* et de*sécurité\*.
-- **Plusieurs services supplémentaires** à *déployer*, *monitorer* et *mettre à jour*  
-  Querier, Store Gateway, Compactor, Ruler, éventuellement Receivers.  
+- **Plusieurs services supplémentaires** à *déployer*, *monitorer* et *mettre à jour*
+  Querier, Store Gateway, Compactor, Ruler, éventuellement Receivers.
   Augmente la complexité opérationnelle par rapport à la simple fédération.
 - Le **dimensionnement et la configuration** (*topologie*, *flags*, *stratégies de downsampling et de rétention*) demandent des compétences spécifiques en observabilité à grande échelle.
 
@@ -164,12 +164,12 @@ Il découpe la pipeline en micro‑services distincts, chacun pouvant être mis 
   - Reçoit les métriques via *remote‑write*,
   - Applique *validation* / *relabeling*,
   - *Répartit les séries* sur les ingesters.
-- **Ingester**  
-  *Stocke les échantillons* en mémoire puis en blocs sur un stockage longue durée (généralement objet).  
+- **Ingester**
+  *Stocke les échantillons* en mémoire puis en blocs sur un stockage longue durée (généralement objet).
   *Expose les données récentes* aux requêtes.
-- **Querier & Query Frontend**  
+- **Querier & Query Frontend**
   *Exécutent les requêtes PromQL*, se connectent aux ingesters pour les données fraîches et au stockage pour l’historique.
-- **Compactor**  
+- **Compactor**
   *Compacte et déduplique* les blocs dans le stockage objet pour améliorer performances et coûts.
 
 Les Prometheus sources (dans chaque DC, cluster, tenant, etc.) envoient leurs données vers Cortex en mode **`remote‑write`**, éventuellement avec un *en‑tête de tenant* (par ex. `X-Scope-OrgID`).
@@ -180,16 +180,16 @@ Les Prometheus sources (dans chaque DC, cluster, tenant, etc.) envoient leurs do
 - **Multi‑tenant natif**
   - Isolation des métriques par tenant,
   - Idéal pour une plateforme partagée entre plusieurs clients ou équipes (ex. : chaque client formation ou chaque promo comme tenant distinct).
-- **Scalabilité horizontale fine**  
+- **Scalabilité horizontale fine**
   Distributeurs, ingesters, queriers et frontends peuvent être *mis à l'échelle indépendamment* selon la charge (ingest vs lecture).
-- **Haute disponibilité**  
+- **Haute disponibilité**
   Les échantillons sont répliqués sur plusieurs ingesters, et le système supporte la perte de nœuds individuels sans perte globale de données.
 - **Rétention longue** durée similaire à Thanos via stockage objet.
 
 
 ### Limites et complexité
 
-- **Architecture plus complexe** que Thanos  
+- **Architecture plus complexe** que Thanos
   Plusieurs micro‑services à opérer, souvent déployés sur Kubernetes, avec un etcd ou un autre KV store pour les métadonnées selon le mode d’indexation historique.
 - Nécessite un soin particulier sur :
   - le **sharding**,
@@ -224,21 +224,21 @@ Mimir reprend la plupart des concepts de Cortex (Distributor, Ingester, Querier,
 
 Architecture typique :
 
-- **Distributor**  
+- **Distributor**
   *Reçoit* les échantillons en `remote‑write`, les *valide* et les *shard* vers les ingesters.
-- **Ingester**  
+- **Ingester**
   *Stocke* en mémoire, *découpe* en blocs, *entrepose* les métriques dans un stockage objet.
-- **Compactor**  
+- **Compactor**
   *Compacte* et *déduplique* les blocs, maintient un *index de bucket par tenant*.
-- **Store Gateway**  
+- **Store Gateway**
   *Sert les blocs historiques* depuis le stockage objet pour les requêtes.
-- **Query Frontend** & **Querier**  
+- **Query Frontend** & **Querier**
   *Pipeline de requête* avec *splitting*, *caching* et *parallélisation* pour améliorer les performances.
 
 
 ### Avantages
 
-- **Multi‑tenant** et **hautement scalable**  
+- **Multi‑tenant** et **hautement scalable**
   Similaire à Cortex, tout en bénéficiant des efforts d’*optimisation* récents de Grafana Labs (par exemple sur la pipeline de requêtage et la gestion des blocks).
 - Intégration naturelle avec l’**écosystème Grafana** (Dashboards, Alerting, Tempo, Loki, etc.).
 - Fonctionnalités avancées
@@ -252,7 +252,7 @@ Architecture typique :
   - nombreux services à déployer et surveiller,
   - dépendance à un stockage objet et à un KV store.
 - Encore plus orienté vers les opérateurs de grandes plateformes d’observabilité (Grafana Cloud‑like) que vers de petits environnements multi‑DC.
-- *Pas encore de downsampling intégré* (proposition encore en discussion)  
+- *Pas encore de downsampling intégré* (proposition encore en discussion)
   Peut impacter les coûts et performances pour des rétentions très longues avec fort volume.
 
 
@@ -290,9 +290,9 @@ Les informations du tableau proviennent de la documentation officielle Prometheu
 
 La fédération est le meilleur point de départ si :
 
-- **Volume de métriques modéré**  
+- **Volume de métriques modéré**
   Quelques centaines/milliers de cibles, rétention locale de quelques semaines à quelques mois.
-- Objectif principal est d’avoir une **vue globale de haut niveau**  
+- Objectif principal est d’avoir une **vue globale de haut niveau**
   Par plateforme de formation, par DC, par client, plutôt qu’une analyse détaillée cross‑DC sur toutes les séries brutes.
 - Équipe Ops/DevOps limitée en *effectif* ou en *expertise* sur les plateformes distribuées.
 
@@ -356,44 +356,44 @@ Cortex et Grafana Mimir sont, eux, adaptés aux opérateurs de plateformes d’o
 
 ## Références
 
-[1] [How to Configure Thanos with Prometheus - OneUptime](https://oneuptime.com/blog/post/2026-01-25-prometheus-thanos-configuration/view)  
-[2] [Scaling Prometheus with Cortex (Updated in 2024) - InfraCloud](https://www.infracloud.io/blogs/cortex-for-ha-monitoring-with-prometheus/)  
-[3] [How to Use Grafana Mimir for Metrics - OneUptime](https://oneuptime.com/blog/post/2026-01-27-grafana-mimir-metrics/view)  
-[4] [Federation | Prometheus](https://prometheus.io/docs/prometheus/latest/federation/)  
-[5] [Cortex Intro: Multi-Tenant Scalable Prometheus - Ben Ye & Friedrich Gonzalez](https://www.youtube.com/watch?v=by538PPSPQ0)  
-[6] [Learning Grafana Mimir architecture](https://at-ishikawa.github.io/2025/03/28/learning-grafana-mimir-architecture/)  
-[7] [Prometheus Federation Scaling Prometheus Guide | Last9](https://last9.io/blog/prometheus-federation-guide/)  
-[8] [Prometheus HA with Thanos sidecar or receiver? | CNCF](https://www.cncf.io/blog/2021/09/10/prometheus-ha-with-thanos-sidecar-or-receiver/)  
-[9] [Getting Started - Thanos](https://thanos.io/v0.4/thanos/getting-started.md/)  
-[10] [Federation in Prometheus: Scaling Across Multiple Clusters](https://platformengineer.hashnode.dev/federation-in-prometheus-scaling-across-multiple-clusters)  
-[11] [How to Implement Prometheus Federation Hierarchies - OneUptime](https://oneuptime.com/blog/post/2026-02-02-prometheus-federation-hierarchies/view)  
-[12] [Thanos Sidecarthanos.io › tip › components › sidecar](https://thanos.io/tip/components/sidecar.md/)  
-[13] [Grafana Mimir compactor](https://grafana.com/docs/mimir/latest/references/architecture/components/compactor/)  
-[14] [Cortex Intro: Multi-Tenant Scalable Prometheus - Charlie Le, Apple & Daniel Blando, Amazon](https://www.youtube.com/watch?v=OGAEWCoM6Tw)  
+[1] [How to Configure Thanos with Prometheus - OneUptime](https://oneuptime.com/blog/post/2026-01-25-prometheus-thanos-configuration/view)
+[2] [Scaling Prometheus with Cortex (Updated in 2024) - InfraCloud](https://www.infracloud.io/blogs/cortex-for-ha-monitoring-with-prometheus/)
+[3] [How to Use Grafana Mimir for Metrics - OneUptime](https://oneuptime.com/blog/post/2026-01-27-grafana-mimir-metrics/view)
+[4] [Federation | Prometheus](https://prometheus.io/docs/prometheus/latest/federation/)
+[5] [Cortex Intro: Multi-Tenant Scalable Prometheus - Ben Ye & Friedrich Gonzalez](https://www.youtube.com/watch?v=by538PPSPQ0)
+[6] [Learning Grafana Mimir architecture](https://at-ishikawa.github.io/2025/03/28/learning-grafana-mimir-architecture/)
+[7] [Prometheus Federation Scaling Prometheus Guide | Last9](https://last9.io/blog/prometheus-federation-guide/)
+[8] [Prometheus HA with Thanos sidecar or receiver? | CNCF](https://www.cncf.io/blog/2021/09/10/prometheus-ha-with-thanos-sidecar-or-receiver/)
+[9] [Getting Started - Thanos](https://thanos.io/v0.4/thanos/getting-started.md/)
+[10] [Federation in Prometheus: Scaling Across Multiple Clusters](https://platformengineer.hashnode.dev/federation-in-prometheus-scaling-across-multiple-clusters)
+[11] [How to Implement Prometheus Federation Hierarchies - OneUptime](https://oneuptime.com/blog/post/2026-02-02-prometheus-federation-hierarchies/view)
+[12] [Thanos Sidecarthanos.io › tip › components › sidecar](https://thanos.io/tip/components/sidecar.md/)
+[13] [Grafana Mimir compactor](https://grafana.com/docs/mimir/latest/references/architecture/components/compactor/)
+[14] [Cortex Intro: Multi-Tenant Scalable Prometheus - Charlie Le, Apple & Daniel Blando, Amazon](https://www.youtube.com/watch?v=OGAEWCoM6Tw)
 [15] [What Is Cortex? Scalable, Multi-Tenant Storage for Prometheus Metrics](https://www.youtube.com/watch?v=ZMBcBxb1Uys)
 
-[1] [Querier/Query - Thanos](https://thanos.io/tip/components/query.md/)  
-[2] [Need clarification on Thanos Query deduplication Behaviour · thanos-io thanos · Discussion #7128](https://github.com/thanos-io/thanos/discussions/7128)  
-[3] [Cortex Architecture](https://cortexmetrics.io/docs/architecture/)  
-[4] [Configure Grafana Mimir high-availability deduplication](https://grafana.com/docs/mimir/latest/configure/configure-high-availability-deduplication/)  
-[5] [Grafana Mimir distributor](https://grafana.com/docs/mimir/latest/references/architecture/components/distributor/)  
-[6] [Capacity Planning - Cortex](https://cortexmetrics.io/docs/guides/capacity-planning/)  
-[7] [Configure Grafana Mimir zone-aware replication](https://grafana.com/docs/mimir/latest/configure/configure-zone-aware-replication/)  
-[8] [Offline deduplication with two replica labels · thanos-io thanos · Discussion #5087](https://github.com/thanos-io/thanos/discussions/5087)  
-[9] [The result of "Use Deduplication" is not as expected #7586 - GitHub](https://github.com/thanos-io/thanos/issues/7586)  
-[10] [Cortex seems to miscalculate quorum when one ingester is unhealthy](https://github.com/cortexproject/cortex/issues/4654)  
-[11] [Replica de-duplication for long term storage · Issue #2362 ... - GitHub](https://github.com/thanos-io/thanos/issues/2362)  
-[12] [Scaling Prometheus: How we're pushing Cortex blocks storage to its ...](https://grafana.com/blog/scaling-prometheus-how-were-pushing-cortex-blocks-storage-to-its-limit-and-beyond/)  
-[13] [Grafana Mimir configuration parameters](https://grafana.com/docs/mimir/latest/configure/configuration-parameters/)  
-[14] [Zone Aware Replication - Cortex Metrics](https://cortexmetrics.io/docs/guides/zone-aware-replication/)  
+[1] [Querier/Query - Thanos](https://thanos.io/tip/components/query.md/)
+[2] [Need clarification on Thanos Query deduplication Behaviour · thanos-io thanos · Discussion #7128](https://github.com/thanos-io/thanos/discussions/7128)
+[3] [Cortex Architecture](https://cortexmetrics.io/docs/architecture/)
+[4] [Configure Grafana Mimir high-availability deduplication](https://grafana.com/docs/mimir/latest/configure/configure-high-availability-deduplication/)
+[5] [Grafana Mimir distributor](https://grafana.com/docs/mimir/latest/references/architecture/components/distributor/)
+[6] [Capacity Planning - Cortex](https://cortexmetrics.io/docs/guides/capacity-planning/)
+[7] [Configure Grafana Mimir zone-aware replication](https://grafana.com/docs/mimir/latest/configure/configure-zone-aware-replication/)
+[8] [Offline deduplication with two replica labels · thanos-io thanos · Discussion #5087](https://github.com/thanos-io/thanos/discussions/5087)
+[9] [The result of "Use Deduplication" is not as expected #7586 - GitHub](https://github.com/thanos-io/thanos/issues/7586)
+[10] [Cortex seems to miscalculate quorum when one ingester is unhealthy](https://github.com/cortexproject/cortex/issues/4654)
+[11] [Replica de-duplication for long term storage · Issue #2362 ... - GitHub](https://github.com/thanos-io/thanos/issues/2362)
+[12] [Scaling Prometheus: How we're pushing Cortex blocks storage to its ...](https://grafana.com/blog/scaling-prometheus-how-were-pushing-cortex-blocks-storage-to-its-limit-and-beyond/)
+[13] [Grafana Mimir configuration parameters](https://grafana.com/docs/mimir/latest/configure/configuration-parameters/)
+[14] [Zone Aware Replication - Cortex Metrics](https://cortexmetrics.io/docs/guides/zone-aware-replication/)
 [15] [How to Use Grafana Mimir for Metrics - OneUptime](https://oneuptime.com/blog/post/2026-01-27-grafana-mimir-metrics/view)
 
-[1] [Federation | Prometheus](https://prometheus.io/docs/prometheus/latest/federation/)  
-[2] [Prometheus Federation Scaling Prometheus Guide | Last9](https://last9.io/blog/prometheus-federation-guide/)  
-[3] [How to Configure Thanos with Prometheus - OneUptime](https://oneuptime.com/blog/post/2026-01-25-prometheus-thanos-configuration/view)  
-[4] [Prometheus HA with Thanos sidecar or receiver? | CNCF](https://www.cncf.io/blog/2021/09/10/prometheus-ha-with-thanos-sidecar-or-receiver/)  
-[5] [Scaling Prometheus with Cortex (Updated in 2024) - InfraCloud](https://www.infracloud.io/blogs/cortex-for-ha-monitoring-with-prometheus/)  
-[6] [Learning Grafana Mimir architecture](https://at-ishikawa.github.io/2025/03/28/learning-grafana-mimir-architecture/)  
+[1] [Federation | Prometheus](https://prometheus.io/docs/prometheus/latest/federation/)
+[2] [Prometheus Federation Scaling Prometheus Guide | Last9](https://last9.io/blog/prometheus-federation-guide/)
+[3] [How to Configure Thanos with Prometheus - OneUptime](https://oneuptime.com/blog/post/2026-01-25-prometheus-thanos-configuration/view)
+[4] [Prometheus HA with Thanos sidecar or receiver? | CNCF](https://www.cncf.io/blog/2021/09/10/prometheus-ha-with-thanos-sidecar-or-receiver/)
+[5] [Scaling Prometheus with Cortex (Updated in 2024) - InfraCloud](https://www.infracloud.io/blogs/cortex-for-ha-monitoring-with-prometheus/)
+[6] [Learning Grafana Mimir architecture](https://at-ishikawa.github.io/2025/03/28/learning-grafana-mimir-architecture/)
 [7] [How to Use Grafana Mimir for Metrics - OneUptime](https://oneuptime.com/blog/post/2026-01-27-grafana-mimir-metrics/view)
 
 

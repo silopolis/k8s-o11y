@@ -114,7 +114,7 @@ kubectl run test --rm -it --image=curlimages/curl --restart=Never \
 Binding metrics to `0.0.0.0` exposes them on all interfaces:
 
 - **Risk**: Metrics endpoints are unauthenticated by default
-- **Mitigation**: 
+- **Mitigation**:
   - Ensure firewall rules restrict access to cluster network only
   - Consider network policies to limit Prometheus pod access
   - Monitor access logs if available

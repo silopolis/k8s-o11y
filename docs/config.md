@@ -73,7 +73,7 @@
   - Vue globale limitée à ce qui est fédéré,
   - Bénéfique pour la scalabilité,
   - Contraignant pour certains diagnostics fins.
-- **Réplication** complète des séries entre serveurs via fédération est déconseillée.  
+- **Réplication** complète des séries entre serveurs via fédération est déconseillée.
   Surcharge les Prometheus source et cible en CPU, mémoire et réseau.
 - **Rétention** à long terme limitée par les capacités d’un seul nœud Prometheus pour chaque instance (locales et globale).
 - **Haute disponibilité** nécessite des mécanismes complémentaires (Prometheus redondants par DC + mécanisme de bascule ou d’équilibrage).
@@ -85,7 +85,7 @@
 - `DC02` : Prometheus DC02 avec le même rôle côté DC02.
 - Master : configure :
   - un job **`/federate`** avec cibles DC01 et DC02, et
-  - des **`match[]`** ne remontant que des *agrégats ou métriques clés*.  
+  - des **`match[]`** ne remontant que des *agrégats ou métriques clés*.
     Exemple : `job="*"` agrégé par service, client ou session de formation).
 
 Ce modèle couvre bien un besoin de monitoring centralisé pour une entreprise de formation tant que la volumétrie reste raisonnable et que la rétention à long terme n’est pas critique.
@@ -112,18 +112,18 @@ Les composants principaux sont :
   - Composant central
   - *Agrège les données* de multiples stores (sidecars, store‑gateways)
   - Fournit une *vue globale PromQL*.
-- **Store Gateway**  
+- **Store Gateway**
   Sert les données historiques à partir du stockage objet.
 - **Compactor**
   - Compacte, sous-échantillonne et déduplique les blocs dans le stockage objet,
   - Améliore les performances de requête et le coût de stockage.
-- **Ruler**  
+- **Ruler**
   Évalue des règles d’alerte ou d’enregistrement sur les données globales.
 
 
 ##### Avantages
 
-- **Rétention virtuellement illimitée**  
+- **Rétention virtuellement illimitée**
   Les blocs Prometheus sont externalisés dans un stockage objet, permettant d’augmenter fortement la période de conservation et de réduire la pression sur les disques locaux.
 - **Haute disponibilité native**
   - Déploiement de plusieurs réplicas Prometheus par DC avec chacun un *sidecar*,
@@ -138,10 +138,10 @@ Les composants principaux sont :
 
 ##### Limites et complexité
 
-- Nécessite un **\*stockage objet** accessible par tous les datacenters*  
+- Nécessite un **\*stockage objet** accessible par tous les datacenters*
   Implique des questions de *latence*, de *coûts* et de*sécurité\*.
-- **Plusieurs services supplémentaires** à *déployer*, *monitorer* et *mettre à jour*  
-  Querier, Store Gateway, Compactor, Ruler, éventuellement Receivers.  
+- **Plusieurs services supplémentaires** à *déployer*, *monitorer* et *mettre à jour*
+  Querier, Store Gateway, Compactor, Ruler, éventuellement Receivers.
   Augmente la complexité opérationnelle par rapport à la simple fédération.
 - Le **dimensionnement et la configuration** (*topologie*, *flags*, *stratégies de downsampling et de rétention*) demandent des compétences spécifiques en observabilité à grande échelle.
 
@@ -174,12 +174,12 @@ Il découpe la pipeline en micro‑services distincts, chacun pouvant être mis 
   - Reçoit les métriques via *remote‑write*,
   - Applique *validation* / *relabeling*,
   - *Répartit les séries* sur les ingesters.
-- **Ingester**  
-  *Stocke les échantillons* en mémoire puis en blocs sur un stockage longue durée (généralement objet).  
+- **Ingester**
+  *Stocke les échantillons* en mémoire puis en blocs sur un stockage longue durée (généralement objet).
   *Expose les données récentes* aux requêtes.
-- **Querier & Query Frontend**  
+- **Querier & Query Frontend**
   *Exécutent les requêtes PromQL*, se connectent aux ingesters pour les données fraîches et au stockage pour l’historique.
-- **Compactor**  
+- **Compactor**
   *Compacte et déduplique* les blocs dans le stockage objet pour améliorer performances et coûts.
 
 Les Prometheus sources (dans chaque DC, cluster, tenant, etc.) envoient leurs données vers Cortex en mode **`remote‑write`**, éventuellement avec un *en‑tête de tenant* (par ex. `X-Scope-OrgID`).
@@ -190,16 +190,16 @@ Les Prometheus sources (dans chaque DC, cluster, tenant, etc.) envoient leurs do
 - **Multi‑tenant natif**
   - Isolation des métriques par tenant,
   - Idéal pour une plateforme partagée entre plusieurs clients ou équipes (ex. : chaque client formation ou chaque promo comme tenant distinct).
-- **Scalabilité horizontale fine**  
+- **Scalabilité horizontale fine**
   Distributeurs, ingesters, queriers et frontends peuvent être *mis à l'échelle indépendamment* selon la charge (ingest vs lecture).
-- **Haute disponibilité**  
+- **Haute disponibilité**
   Les échantillons sont répliqués sur plusieurs ingesters, et le système supporte la perte de nœuds individuels sans perte globale de données.
 - **Rétention longue** durée similaire à Thanos via stockage objet.
 
 
 ##### Limites et complexité
 
-- **Architecture plus complexe** que Thanos  
+- **Architecture plus complexe** que Thanos
   Plusieurs micro‑services à opérer, souvent déployés sur Kubernetes, avec un etcd ou un autre KV store pour les métadonnées selon le mode d’indexation historique.
 - Nécessite un soin particulier sur :
   - le **sharding**,
@@ -234,21 +234,21 @@ Mimir reprend la plupart des concepts de Cortex (Distributor, Ingester, Querier,
 
 Architecture typique :
 
-- **Distributor**  
+- **Distributor**
   *Reçoit* les échantillons en `remote‑write`, les *valide* et les *shard* vers les ingesters.
-- **Ingester**  
+- **Ingester**
   *Stocke* en mémoire, *découpe* en blocs, *entrepose* les métriques dans un stockage objet.
-- **Compactor**  
+- **Compactor**
   *Compacte* et *déduplique* les blocs, maintient un *index de bucket par tenant*.
-- **Store Gateway**  
+- **Store Gateway**
   *Sert les blocs historiques* depuis le stockage objet pour les requêtes.
-- **Query Frontend** & **Querier**  
+- **Query Frontend** & **Querier**
   *Pipeline de requête* avec *splitting*, *caching* et *parallélisation* pour améliorer les performances.
 
 
 ##### Avantages
 
-- **Multi‑tenant** et **hautement scalable**  
+- **Multi‑tenant** et **hautement scalable**
   Similaire à Cortex, tout en bénéficiant des efforts d’*optimisation* récents de Grafana Labs (par exemple sur la pipeline de requêtage et la gestion des blocks).
 - Intégration naturelle avec l’**écosystème Grafana** (Dashboards, Alerting, Tempo, Loki, etc.).
 - Fonctionnalités avancées
@@ -262,7 +262,7 @@ Architecture typique :
   - nombreux services à déployer et surveiller,
   - dépendance à un stockage objet et à un KV store.
 - Encore plus orienté vers les opérateurs de grandes plateformes d’observabilité (Grafana Cloud‑like) que vers de petits environnements multi‑DC.
-- *Pas encore de downsampling intégré* (proposition encore en discussion)  
+- *Pas encore de downsampling intégré* (proposition encore en discussion)
   Peut impacter les coûts et performances pour des rétentions très longues avec fort volume.
 
 
@@ -300,9 +300,9 @@ Les informations du tableau proviennent de la documentation officielle Prometheu
 
 La fédération est le meilleur point de départ si :
 
-- **Volume de métriques modéré**  
+- **Volume de métriques modéré**
   Quelques centaines/milliers de cibles, rétention locale de quelques semaines à quelques mois.
-- Objectif principal est d’avoir une **vue globale de haut niveau**  
+- Objectif principal est d’avoir une **vue globale de haut niveau**
   Par plateforme de formation, par DC, par client, plutôt qu’une analyse détaillée cross‑DC sur toutes les séries brutes.
 - Équipe Ops/DevOps limitée en *effectif* ou en *expertise* sur les plateformes distribuées.
 
@@ -766,7 +766,7 @@ Les données n'ayant pu être collectées en temps voulu sont définitivement pe
 - La fédération n’ajoute **aucun mécanisme HA ou de failover propre**
 - Elle fonctionne très bien pour agréger des **agrégats à faible cardinalité** depuis plusieurs clusters,
 - Le Prometheus global reste soumis aux mêmes limites CPU/RAM/disque qu’un Prometheus classique.
-- Il n’existe **ni déduplication globale native**, **ni orchestration de bascule entre instances**  
+- Il n’existe **ni déduplication globale native**, **ni orchestration de bascule entre instances**
   Tout doit être géré par la conception des *labels*, des *règles* et de l’infrastructure autour.
 
 
@@ -789,9 +789,9 @@ Les données n'ayant pu être collectées en temps voulu sont définitivement pe
 
 #### Déduplication globale
 
-- En fédération, **le Master voit chaque série fédérée comme une série normale**.  
+- En fédération, **le Master voit chaque série fédérée comme une série normale**.
   S’il existe deux sources pour la même métrique (ex. même exporter scrapé par DC01 et DC02), il verra deux séries distinctes, différenciées par leurs labels (`dc`, `cluster`, `prometheus`, etc.).
-- Il n’y a **pas de déduplication globale automatique**.  
+- Il n’y a **pas de déduplication globale automatique**.
   Si deux séries ont exactement les mêmes labels (donc « même identité » pour Prometheus), on obtient des **erreurs** de type *out‑of‑order* / *different value but same timestamp*, ou des *doublons* qui **biaisent les agrégations**.
 - La **gestion des doublons** repose sur :
   - La **conception des labels et `external_labels`** pour distinguer clairement chaque source (cluster, dc, prometheus_replica, etc.).
@@ -1047,7 +1047,7 @@ groups:
   }
   ```
 
-- Vérification des métriques pré-calculées :  
+- Vérification des métriques pré-calculées :
   Vérifier que les règles d'enregistrement produisent des données
 
   ```bash
@@ -1225,7 +1225,7 @@ Sur une requête simple et un test dans lequel le temps de calcul de celle-ci n'
   - Type : Time Series (lignes)
   - Queries :
     app:latency_p50:by_service # Bleu, ligne fine
-    app:latency_p90:by_service # Orange, ligne moyenne  
+    app:latency_p90:by_service # Orange, ligne moyenne
     app:latency_p99:by_service # Rouge, ligne épaisse
   - Description : Superposition des 3 percentiles pré-calculés par service
   - Styles : Épaisseurs de ligne croissantes (P50=1, P90=2, P99=3)
@@ -1295,9 +1295,9 @@ Explication de l'expression pour la règle `CRITAppServiceDown` :
   (traefik_service_up{service="training-app@docker"} == 1)
   ```
 
-- Décomposition : 01. `up{job="traefik"} == 1`  
-   Sélectionne les *instances où le job Traefik répond* (scraping OK) 02. `traefik_service_up{service="training-app@docker"} == 1`  
-   Vérifie que le *service `training-app@docker` est présent dans les targets Traefik* 03. `unless on (instance)`  
+- Décomposition : 01. `up{job="traefik"} == 1`
+   Sélectionne les *instances où le job Traefik répond* (scraping OK) 02. `traefik_service_up{service="training-app@docker"} == 1`
+   Vérifie que le *service `training-app@docker` est présent dans les targets Traefik* 03. `unless on (instance)`
    *Opérateur d'exclusion* : retourne les éléments à gauche qui n'ont pas de correspondance à droite, en joignant sur le label instance
 
 - Logique :
@@ -1445,11 +1445,11 @@ app:error_rate:by_service
 #### Rétention
 
 - **Rétention Prometheus** : **`prometheus.prometheusSpec.retention`**
-  Contrôle la *durée de conservation des métriques*.  
+  Contrôle la *durée de conservation des métriques*.
   Paramètre critique pour la *taille disque* et la *durée d’historique disponible*.
   Par défaut 10 jours dans les valeurs résumées.
-- **Rétention Alertmanager** : **`alertmanager.alertmanagerSpec.retention`**  
-  Définit la durée de *rétention des données d’Alertmanager* (par défaut `120h`).  
+- **Rétention Alertmanager** : **`alertmanager.alertmanagerSpec.retention`**
+  Définit la durée de *rétention des données d’Alertmanager* (par défaut `120h`).
   Impacte la *persistance de l’historique des notifications* (silences, état des alertes, etc.).
 
 

@@ -15,14 +15,14 @@
 
 ## Current Position
 
-**Phase:** 1 (Core Observability Stack)  
-**Plan:** 3 of 3 completed (01-01, 01-02, 01-03 all done)  
-**Status:** Complete - All Phase 1 success criteria verified and passing  
-**Progress Bar:** `[◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆] 100%`
+**Phase:** 01.1 (Clear pending todos, extend/deepen mise features)
+**Plan:** 2 of 4 in progress (01.1-01 complete, 01.1-02 complete)
+**Status:** In Progress - Wave 2 Quality Gates Complete
+**Progress Bar:** `[◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◇◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆] 60%`
 
-**Current Activity:** Phase 1 complete - Ready to begin Phase 2: Traefik Gateway API
+**Current Activity:** Completed Wave 2 (Quality Gates) - Pre-commit hooks, markdownlint, and shellcheck configured
 
-**Last Action:** Completed Plan 01-03: All 5 success criteria verified, verification script and access documentation created
+**Last Action:** Completed Plan 01.1-02: Quality gates established with pre-commit hooks using mise exec pattern
 
 
 ## Performance Metrics
@@ -98,6 +98,7 @@
 | 9   | Refactor all 28 mise inline tasks into file tasks in .mise/tasks/ directory        | 2026-03-13 | 6f991a5 | [9-refactor-all-mise-inline-tasks-into-file](./quick/9-refactor-all-mise-inline-tasks-into-file/) |
 | 10  | Refactor mise tasks to nested directory structure with _default symlinks          | 2026-03-13 | 599dda3 | [10-refactor-mise-tasks-with-nested-director](./quick/10-refactor-mise-tasks-with-nested-director/) |
 | 11  | Merge scripts into their corresponding mise tasks                                 | 2026-03-13 | bf2cce4 | [11-merge-scripts-into-their-corresponding-m](./quick/11-merge-scripts-into-their-corresponding-m/) |
+| 12  | Create commit for staged files                                                    | 2026-03-13 | 46b61f4 | [12-create-commit-for-staged-files](./quick/12-create-commit-for-staged-files/) |
 
 
 ## Accumulated Context
@@ -114,9 +115,9 @@
 - [Refactor mise tasks to use directory tree in .mise/tasks/](.planning/todos/done/2026-03-12-refactor-mise-tasks-to-use-directory-tree-in-mise-tasks.md) — tooling — COMPLETED 2026-03-13: Migrated 28 inline tasks to executable files with colon namespacing.
 - [Add proper project main README.md file](.planning/todos/pending/2026-03-12-add-proper-project-main-readme-md-file.md) — docs — Create comprehensive README.md at repository root with project overview, quick start, and documentation links.
 - [Fix Talos control plane metrics exposition](.planning/todos/pending/2026-03-12-fix-talos-control-plane-metrics-exposition.md) — tooling — Review and fix issues with the completed Talos control plane metrics configuration.
-- [Add markdownlint-cli to mise tools and pre-commit checking](.planning/todos/pending/2026-03-12-add-markdownlint-cli-to-mise-tools-and-pre-commit-checking.md) — tooling — Add markdownlint-cli2 as a mise tool and create lint task for markdown files.
-- [Add shellcheck checking to check scripts, tasks and pre-commit](.planning/todos/pending/2026-03-12-add-shellcheck-checking-to-check-scripts-tasks-and-pre-commit.md) — tooling — Integrate shellcheck static analysis for shell scripts in scripts/ directory and pre-commit hooks.
-- [Add pre-commit hooks support to the repository](.planning/todos/pending/2026-03-12-add-pre-commit-hooks-support-to-the-repository.md) — tooling — Set up pre-commit framework with markdownlint, YAML validation, and secret detection hooks.
+- [Add markdownlint-cli to mise tools and pre-commit checking](.planning/todos/done/2026-03-12-add-markdownlint-cli-to-mise-tools-and-pre-commit-checking.md) — tooling — COMPLETED 2026-03-13: Pre-commit hooks configured with markdownlint-cli2 via mise exec pattern.
+- [Add shellcheck checking to check scripts, tasks and pre-commit](.planning/todos/done/2026-03-12-add-shellcheck-checking-to-check-scripts-tasks-and-pre-commit.md) — tooling — COMPLETED 2026-03-13: Shellcheck integrated into pre-commit hooks and lint tasks.
+- [Add pre-commit hooks support to the repository](.planning/todos/done/2026-03-12-add-pre-commit-hooks-support-to-the-repository.md) — tooling — COMPLETED 2026-03-13: Pre-commit framework installed with mise exec pattern for all hooks.
 - [Remove mise and brew PATH from preflight script](.planning/todos/pending/2026-03-11-remove-mise-and-brew-path-from-preflight-script.md) — tooling — Remove hardcoded PATH modifications that assume specific mise/brew installation paths.
 - [Create getter functions for cluster and tool versions](.planning/todos/pending/2026-03-12-create-getter-functions-for-cluster-and-tool-versions.md) — tooling — Create getter functions for talos version, kubernetes version, kubectl version, helm version, helmfile version, node count, control plane node count, worker node count, node ready status, crd list.
 - [Configure Talos to expose control plane metrics](.planning/todos/completed/2026-03-12-configure-talos-to-expose-control-plane-metrics.md) — tooling — Enable controller-manager, scheduler, kube-proxy metrics endpoints in Talos machine config.
@@ -127,12 +128,29 @@
 ## Phase Context Cache
 
 
-### Phase 1: Core Observability Stack ✓ COMPLETE
+### Phase 01.1: Clear Pending Todos, Extend/Deepen Mise Features
 
-**Status:** ✓ COMPLETE - All success criteria met  
-**Goal:** Prometheus, Grafana, Alertmanager, and node-level metrics operational  
-**Key Risk:** Prometheus storage misconfiguration on single-node Docker - RESOLVED  
-**Entry Criteria:** None (foundation phase)  
+**Status:** In Progress - Wave 2 Complete
+**Wave 1 (Tools):** ✓ Complete - All tools installed via mise
+**Wave 2 (Quality Gates):** ✓ Complete - Pre-commit, markdownlint, shellcheck configured
+**Wave 3 (Documentation):** Pending - README.md, lib/kubernetes.sh, SETUP.md
+**Wave 4 (Extended):** Pending
+
+**Entry Criteria:** Phase 1 complete
+**Exit Criteria:** All pending todos cleared, quality gates established, documentation complete
+
+**Artifacts:**
+- `.pre-commit-config.yaml` - Pre-commit hooks with mise exec pattern
+- `lib/lint.sh` - Shared linting utilities
+- `.mise/tasks/lint/markdown/` - Markdown lint tasks
+- `.mise/tasks/lint/shell/` - Shellcheck tasks
+- `.mise/tasks/verify/wave2` - Wave 2 verification task
+- `.planning/phases/01.1-clear-pending-todos-extend-deepen-mise-features-usage-refactor-improve-and-extend-libs-and-scripts/01.1-02-SUMMARY.md`
+
+**Status:** ✓ COMPLETE - All success criteria met
+**Goal:** Prometheus, Grafana, Alertmanager, and node-level metrics operational
+**Key Risk:** Prometheus storage misconfiguration on single-node Docker - RESOLVED
+**Entry Criteria:** None (foundation phase)
 **Exit Criteria:** ✓ All 5 success criteria met:
 - ✓ Prometheus collecting from node-exporter and kube-state-metrics
 - ✓ Grafana accessible via NodePort 30030
@@ -183,21 +201,21 @@
 
 **Last Updated:** 2026-03-13
 
-**Last activity:** 2026-03-13 - Completed quick task 11: Merged 8 scripts into their corresponding mise tasks
+**Last activity:** 2026-03-13 - Completed quick task 12: Create commit for staged files
 
 **Context Hash:** k8s-monitoring-quick-5phases-35reqs
 
 **To Continue:**
 
 ```bash
-# View Phase 1 verification report
-cat .planning/phases/01-core-observability-stack/01-03-SUMMARY.md
+# View Wave 2 summary
+cat .planning/phases/01.1-clear-pending-todos-extend-deepen-mise-features-usage-refactor-improve-and-extend-libs-and-scripts/01.1-02-SUMMARY.md
 
-# Run verification script
-bash scripts/verify-phase1.sh
+# Run Wave 2 verification
+mise run verify:wave2
 
-# Start Phase 2 planning
-/gsd-plan-phase 2
+# Execute next wave (Wave 3: Documentation/Utilities)
+# Or mark todos as done by moving files from pending/ to completed/
 ```
 
 **Working Directory:** `.planning/`

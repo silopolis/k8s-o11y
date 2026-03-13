@@ -1,0 +1,27 @@
+# Supports gitignore-style globs.
+# Even if pre-commit passes files to the hook, markdownlint-cli2 will skip files listed here.
+# So this file is a second safety layer.
+
+# build outputs
+site/
+_site/
+build/
+_build/
+docs/_build/
+docs/_site/
+.quarto
+
+# dependencies
+node_modules/
+vendor/
+
+# generated content
+generated/
+api/
+
+# vendored docs
+third_party/
+
+# temporary
+tmp/
+.cache/

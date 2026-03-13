@@ -1,6 +1,15 @@
 ---
 # .markdownlint.yml
 # Configuration for docs-as-code (Quarto + MyST), semantic line breaks.
+globs:
+  - "**/*.md"
+  - "**/*.markdown"
+  - "!site/**"
+  - "!build/**"
+  - "!_build/**"
+  - "!docs/_build/**"
+  - "!vendor/**"
+
 config:
   default: true
 
@@ -30,7 +39,10 @@ config:
     lines_below: 1
 
   MD023: true # headings must start at beginning of line
-  MD024: true # no duplicate headings
+  MD024: # no duplicate headings
+    siblings_only: true
+  MD025:
+    front_matter_title: "^title:"
   MD026: # no-trailing-punctuation in headings
     punctuation: ".,;:!?"
 
@@ -74,4 +86,3 @@ config:
 
   MD033: false # allow inline HTML (sometimes used in MyST/Quarto)
   MD036: true # no-emphasis-as-heading
-

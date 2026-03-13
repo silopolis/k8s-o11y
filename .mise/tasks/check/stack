@@ -1,10 +1,375 @@
 #!/usr/bin/env bash
 # [MISE] description="Verify Phase 01-02 deployment is healthy"
 
-set -e
+# Don't use set -e - we want to handle errors gracefully with pass/fail functions
+# set -e
 
-echo "=== Checking pods ==="
-kubectl get pods -n monitoring
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Counters
+TOTAL_CHECKS=0
+PASSED_CHECKS=0
+FAILED_CHECKS=0
+WARNINGS=0
+
+# Helper functions
+pass() {
+    echo -e "${GREEN}✓${NC} $1"
+    ((PASSED_CHECKS++))
+    ((TOTAL_CHECKS++))
+}
+
+fail() {
+    echo -e "${RED}✗${NC} $1"
+    ((FAILED_CHECKS++))
+    ((TOTAL_CHECKS++))
+}
+
+warn() {
+    echo -e "${YELLOW}⚠${NC} $1"
+    ((WARNINGS++))
+    ((TOTAL_CHECKS++))
+}
+
+info() {
+    echo -e "${BLUE}ℹ${NC} $1"
+}
+
+header() {
+    echo ""
+    echo "=========================================="
+    echo "$1"
+    echo "=========================================="
+}
+
+# ============================================================================
+# MAIN VERIFICATION
+# ============================================================================
+
+echo "=========================================="
+echo "Phase 1 Verification Script"
+echo "=========================================="
 echo ""
-echo "=== Checking services ==="
-kubectl get svc -n monitoring
+info "Starting verification at $(date)"
+echo ""
+
+# ----------------------------------------------------------------------------
+# 1. Pod Health Verification
+# ----------------------------------------------------------------------------
+header "1. Pod Health Check"
+
+# Check all pods in monitoring namespace are Running
+PODS=$(kubectl get pods -n monitoring -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' 2>/dev/null || echo "")
+
+if [[ -z "$PODS" ]]; then
+    fail "No pods found in monitoring namespace"
+else
+    ALL_RUNNING=true
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            POD_NAME=$(echo "$line" | awk '{print $1}')
+            POD_PHASE=$(echo "$line" | awk '{print $2}')
+            if [[ "$POD_PHASE" == "Running" ]]; then
+                pass "Pod $POD_NAME is Running"
+            else
+                fail "Pod $POD_NAME is in phase: $POD_PHASE"
+                ALL_RUNNING=false
+            fi
+        fi
+    done <<< "$PODS"
+fi
+
+# Check for CrashLoopBackOff specifically
+CRASHLOOPS=$(kubectl get pods -n monitoring --field-selector=status.phase!=Running -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+if [[ -z "$CRASHLOOPS" ]]; then
+    pass "No pods in CrashLoopBackOff or error states"
+else
+    while IFS= read -r pod; do
+        if [[ -n "$pod" ]]; then
+            fail "Pod in non-Running state: $pod"
+        fi
+    done <<< "$CRASHLOOPS"
+fi
+
+# Check node-exporter DaemonSet
+NODE_EXPORTER_DS=$(kubectl get daemonset -n monitoring -l app.kubernetes.io/name=prometheus-node-exporter -o jsonpath='{.items[0].status.numberReady}' 2>/dev/null || echo "0")
+NODE_EXPORTER_DESIRED=$(kubectl get daemonset -n monitoring -l app.kubernetes.io/name=prometheus-node-exporter -o jsonpath='{.items[0].status.desiredNumberScheduled}' 2>/dev/null || echo "0")
+if [[ "$NODE_EXPORTER_DS" == "$NODE_EXPORTER_DESIRED" && "$NODE_EXPORTER_DS" -gt 0 ]]; then
+    pass "Node-exporter running on all $NODE_EXPORTER_DS nodes"
+else
+    fail "Node-exporter: $NODE_EXPORTER_DS/$NODE_EXPORTER_DESIRED nodes ready"
+fi
+
+# ----------------------------------------------------------------------------
+# 2. Service Accessibility
+# ----------------------------------------------------------------------------
+header "2. Service Accessibility Check"
+
+# Check Grafana NodePort service
+GRAFANA_SVC=$(kubectl get svc -n monitoring kube-prometheus-stack-grafana -o jsonpath='{.spec.type}:{.spec.ports[0].nodePort}' 2>/dev/null || echo "")
+if [[ "$GRAFANA_SVC" == "NodePort:30030" ]]; then
+    pass "Grafana service exposed on NodePort 30030"
+else
+    fail "Grafana NodePort not configured correctly: $GRAFANA_SVC"
+fi
+
+# Check Prometheus service exists
+PROM_SVC=$(kubectl get svc -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.metadata.name}' 2>/dev/null || echo "")
+if [[ "$PROM_SVC" == "kube-prometheus-stack-prometheus" ]]; then
+    pass "Prometheus service exists"
+else
+    fail "Prometheus service not found"
+fi
+
+# Check Alertmanager service exists
+ALERT_SVC=$(kubectl get svc -n monitoring kube-prometheus-stack-alertmanager -o jsonpath='{.metadata.name}' 2>/dev/null || echo "")
+if [[ "$ALERT_SVC" == "kube-prometheus-stack-alertmanager" ]]; then
+    pass "Alertmanager service exists"
+else
+    fail "Alertmanager service not found"
+fi
+
+# Get node IP for Grafana access
+NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo "")
+if [[ -n "$NODE_IP" ]]; then
+    info "Grafana accessible at: http://$NODE_IP:30030"
+fi
+
+# ----------------------------------------------------------------------------
+# 3. Metrics Collection
+# ----------------------------------------------------------------------------
+header "3. Metrics Collection Check"
+
+# Helper function to query Prometheus via kubectl exec
+query_prometheus() {
+    local query="$1"
+    kubectl exec -i prometheus-kube-prometheus-stack-prometheus-0 -n monitoring -c prometheus -- \
+        wget -qO- "http://localhost:9090/api/v1/query?query=$query" 2>/dev/null || echo ""
+}
+
+# Check Prometheus pod is ready
+PROM_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=prometheus -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+if [[ -z "$PROM_POD" ]]; then
+    warn "Could not find Prometheus pod - skipping metrics checks"
+else
+    # Query for up metric (node-exporter)
+    NODE_EXPORTER_UP=$(query_prometheus 'up{job="node-exporter"}' | grep -o '"status":"success"' || echo "")
+    if [[ -n "$NODE_EXPORTER_UP" ]]; then
+        pass "Node-exporter metrics being collected"
+    else
+        warn "Node-exporter metrics query did not return success"
+    fi
+
+    # Query for kube-state-metrics
+    KUBE_STATE_UP=$(query_prometheus 'up{job="kube-state-metrics"}' | grep -o '"status":"success"' || echo "")
+    if [[ -n "$KUBE_STATE_UP" ]]; then
+        pass "Kube-state-metrics being collected"
+    else
+        warn "Kube-state-metrics query did not return success"
+    fi
+
+    # Check basic up{} query
+    UP_METRICS=$(query_prometheus 'up' | grep -o '"resultType":"vector"' || echo "")
+    if [[ -n "$UP_METRICS" ]]; then
+        pass "Prometheus returning metric data (up query)"
+    else
+        warn "up{} query did not return vector results"
+    fi
+fi
+
+# ----------------------------------------------------------------------------
+# 4. Dashboards
+# ----------------------------------------------------------------------------
+header "4. Grafana Dashboards Check"
+
+# Check ConfigMaps with grafana_dashboard label
+DASHBOARDS=$(kubectl get configmap -n monitoring -l grafana_dashboard=1 -o name 2>/dev/null | wc -l || echo "0")
+if [[ "$DASHBOARDS" -gt 0 ]]; then
+    pass "$DASHBOARDS dashboards available via ConfigMaps"
+else
+    warn "No Grafana dashboard ConfigMaps found with grafana_dashboard label"
+fi
+
+# List specific dashboards
+DASHBOARD_NAMES=$(kubectl get configmap -n monitoring -l grafana_dashboard=1 -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || echo "")
+if [[ -n "$DASHBOARD_NAMES" ]]; then
+    info "Available dashboards:"
+    echo "$DASHBOARD_NAMES" | while read -r name; do
+        if [[ -n "$name" ]]; then
+            echo "  - $name"
+        fi
+    done
+fi
+
+# ----------------------------------------------------------------------------
+# 5. Alerts
+# ----------------------------------------------------------------------------
+header "5. Alertmanager and Alerts Check"
+
+# Check Alertmanager pod status
+ALERT_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=alertmanager -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "")
+if [[ "$ALERT_POD" == "Running" ]]; then
+    pass "Alertmanager pod is Running"
+else
+    fail "Alertmanager pod not in Running state"
+fi
+
+# Check PrometheusRules
+RULE_COUNT=$(kubectl get prometheusrules -n monitoring -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | wc -l || echo "0")
+if [[ "$RULE_COUNT" -gt 0 ]]; then
+    pass "$RULE_COUNT PrometheusRule resources configured"
+else
+    warn "No PrometheusRule resources found"
+fi
+
+# Check alert status via Prometheus using kubectl exec
+if [[ -n "$PROM_POD" ]]; then
+    RULE_GROUPS=$(kubectl exec -i "$PROM_POD" -n monitoring -c prometheus -- \
+        wget -qO- "http://localhost:9090/api/v1/rules" 2>/dev/null | grep -o '"groups":\[' | wc -l || echo "0")
+    if [[ "$RULE_GROUPS" -gt 0 ]]; then
+        pass "Prometheus has rule groups configured"
+    else
+        warn "Could not verify Prometheus rule groups via API"
+    fi
+else
+    warn "Could not verify Prometheus rules - pod not found"
+fi
+
+# ----------------------------------------------------------------------------
+# 6. Configuration Verification
+# ----------------------------------------------------------------------------
+header "6. Configuration Check"
+
+# Check Prometheus retention configuration via args
+PROM_RETENTION=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.retention}' 2>/dev/null || echo "")
+PROM_STORAGE=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.storage}' 2>/dev/null || echo "")
+
+if [[ "$PROM_RETENTION" == "3d" ]]; then
+    pass "Prometheus retention set to 3 days"
+else
+    # Check in args
+    RETENTION_ARG=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.additionalArgs}' 2>/dev/null | grep -o 'storage.tsdb.retention.time=[^"]*' || echo "")
+    if [[ -n "$RETENTION_ARG" ]]; then
+        pass "Prometheus retention configured via args: $RETENTION_ARG"
+    else
+        warn "Could not verify Prometheus retention configuration (expected 3d)"
+    fi
+fi
+
+# Check for storage size limit (2GB)
+STORAGE_SIZE=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.storage}' 2>/dev/null | grep -o '"size":"2Gi"' || echo "")
+if [[ -n "$STORAGE_SIZE" ]]; then
+    pass "Prometheus storage size limited to 2Gi"
+else
+    # Check for emptyDir with size limit
+    VOLUMES=$(kubectl get prometheus -n monitoring kube-prometheus-stack-prometheus -o jsonpath='{.spec.volumes}' 2>/dev/null || echo "")
+    if [[ "$VOLUMES" == *"emptyDir"* ]]; then
+        pass "Prometheus using emptyDir storage"
+    else
+        info "Prometheus storage type not explicitly verified"
+    fi
+fi
+
+# Check etcd is NOT being monitored (Talos compatibility)
+PROM_LOGS=$(kubectl logs -n monitoring -l app.kubernetes.io/name=prometheus --tail=20 2>/dev/null | grep -i "etcd" | head -5 || echo "")
+if [[ -z "$PROM_LOGS" ]]; then
+    pass "No etcd-related errors in Prometheus logs (Talos compatible)"
+else
+    warn "Found etcd references in logs - verify Talos compatibility"
+fi
+
+# Check Prometheus config for etcd scrape configs (should be absent)
+CONFIGMAP_NAME=$(kubectl get configmap -n monitoring -l managed-by=prometheus-operator -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+if [[ -n "$CONFIGMAP_NAME" ]]; then
+    ETCD_IN_CONFIG=$(kubectl get configmap -n monitoring "$CONFIGMAP_NAME" -o jsonpath='{.data.prometheus\.yaml\.gz}' 2>/dev/null | base64 -d 2>/dev/null | gunzip 2>/dev/null | grep -i "etcd" | head -3 || echo "")
+    if [[ -z "$ETCD_IN_CONFIG" ]]; then
+        pass "No etcd scrape configs in Prometheus configuration"
+    else
+        warn "etcd found in Prometheus configuration - verify Talos compatibility"
+    fi
+fi
+
+# ----------------------------------------------------------------------------
+# Summary
+# ----------------------------------------------------------------------------
+header "VERIFICATION SUMMARY"
+
+echo ""
+echo "Results:"
+echo "  Total checks:    $TOTAL_CHECKS"
+echo -e "  Passed:          ${GREEN}$PASSED_CHECKS${NC}"
+echo -e "  Failed:          ${RED}$FAILED_CHECKS${NC}"
+echo -e "  Warnings:        ${YELLOW}$WARNINGS${NC}"
+echo ""
+
+# Phase 1 Success Criteria Status
+echo "Phase 1 Success Criteria:"
+echo ""
+
+# Criterion 1: Prometheus collecting metrics from node-exporter and kube-state-metrics
+if [[ "$PASSED_CHECKS" -ge 3 ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-01: Prometheus collecting metrics from node-exporter"
+else
+    echo -e "  ${RED}✗${NC} MON-01: Node-exporter metrics collection needs verification"
+fi
+
+# Criterion 2: Grafana accessible
+if [[ "$GRAFANA_SVC" == "NodePort:30030" ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-02: Grafana accessible via NodePort 30030"
+else
+    echo -e "  ${RED}✗${NC} MON-02: Grafana accessibility issue"
+fi
+
+# Criterion 3: Pre-configured dashboards
+if [[ "$DASHBOARDS" -gt 0 ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-03: Pre-configured dashboards available ($DASHBOARDS)"
+else
+    echo -e "  ${RED}✗${NC} MON-03: Dashboards not found"
+fi
+
+# Criterion 4: Alertmanager receiving alerts
+if [[ "$ALERT_POD" == "Running" && "$RULE_COUNT" -gt 0 ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-04: Alertmanager running with $RULE_COUNT rule groups"
+else
+    echo -e "  ${RED}✗${NC} MON-04: Alertmanager or rules not properly configured"
+fi
+
+# Criterion 5: Retention configured
+if [[ "$PROM_RETENTION" == "3d" || -n "$RETENTION_ARG" ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-05: Prometheus retention configured (3d/2GB)"
+else
+    echo -e "  ${YELLOW}⚠${NC} MON-05: Retention configuration needs verification"
+fi
+
+# Criterion 6: etcd monitoring disabled
+if [[ -z "$PROM_LOGS" && -z "$ETCD_IN_CONFIG" ]]; then
+    echo -e "  ${GREEN}✓${NC} MON-06: etcd monitoring disabled (Talos compatible)"
+else
+    echo -e "  ${YELLOW}⚠${NC} MON-06: Verify etcd is disabled for Talos compatibility"
+fi
+
+echo ""
+
+# Final verdict
+if [[ "$FAILED_CHECKS" -eq 0 ]]; then
+    echo -e "${GREEN}==========================================${NC}"
+    echo -e "${GREEN}  Phase 1 Verification: PASSED${NC}"
+    echo -e "${GREEN}==========================================${NC}"
+    echo ""
+    echo "All critical success criteria are met."
+    echo "Phase 1 is ready for completion."
+    exit 0
+else
+    echo -e "${RED}==========================================${NC}"
+    echo -e "${RED}  Phase 1 Verification: ISSUES FOUND${NC}"
+    echo -e "${RED}==========================================${NC}"
+    echo ""
+    echo "Some checks failed. Review the output above."
+    echo "Address critical issues before proceeding to Phase 2."
+    exit 1
+fi

@@ -97,6 +97,7 @@
 | 8   | Add 'cluster/context' directory to .mise/tasks/                                   | 2026-03-13 | 02a1135 | [8-add-cluster-context-directory-to-mise-ta](./quick/8-add-cluster-context-directory-to-mise-ta/) |
 | 9   | Refactor all 28 mise inline tasks into file tasks in .mise/tasks/ directory        | 2026-03-13 | 6f991a5 | [9-refactor-all-mise-inline-tasks-into-file](./quick/9-refactor-all-mise-inline-tasks-into-file/) |
 | 10  | Refactor mise tasks to nested directory structure with _default symlinks          | 2026-03-13 | 599dda3 | [10-refactor-mise-tasks-with-nested-director](./quick/10-refactor-mise-tasks-with-nested-director/) |
+| 11  | Merge scripts into their corresponding mise tasks                                 | 2026-03-13 | bf2cce4 | [11-merge-scripts-into-their-corresponding-m](./quick/11-merge-scripts-into-their-corresponding-m/) |
 
 
 ## Accumulated Context
@@ -182,7 +183,7 @@
 
 **Last Updated:** 2026-03-13
 
-**Last activity:** 2026-03-13 - Completed quick task 10: Refactored mise tasks to nested directory structure with _default symlinks
+**Last activity:** 2026-03-13 - Completed quick task 11: Merged 8 scripts into their corresponding mise tasks
 
 **Context Hash:** k8s-monitoring-quick-5phases-35reqs
 
